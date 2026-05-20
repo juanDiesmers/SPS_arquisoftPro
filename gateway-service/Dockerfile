@@ -1,21 +1,12 @@
-FROM maven:3.9.6-eclipse-temurin-17 AS build
-
-WORKDIR /workspace
-
-COPY pom.xml ./
-
-RUN mvn dependency:go-offline -B
-
-COPY src ./src
-
-RUN mvn clean package -DskipTests -B
-
-FROM eclipse-temurin:17-jre-alpine
-
+# Etapa de construcción
+FROM maven:3.8.4-openjdk-17 AS build
 WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-COPY --from=build /workspace/target/*.jar app.jar
-
-EXPOSE 8085
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Etapa de ejecución con Amazon Corretto 17 (alpine es liviano)
+FROM amazoncorretto:17-alpine
+COPY --from=build /app/target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]

@@ -7,7 +7,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 @Component
 public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
@@ -24,18 +23,25 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
         return (exchange, chain) -> {
             String path = exchange.getRequest().getPath().value();
             
-            // Skip JWT validation for public endpoints
+            // Public endpoints - skip validation
             if (isPublicPath(path)) {
                 return chain.filter(exchange);
             }
 
-            String token = extractToken(exchange);
+            // Protected endpoints - check token
+            String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             
-            if (token == null || !jwtTokenProvider.validateToken(token)) {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
-            
+
+            String token = authHeader.substring(7);
+            if (!jwtTokenProvider.validateToken(token)) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
+
             return chain.filter(exchange);
         };
     }
@@ -46,14 +52,6 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                path.startsWith("/v3/api-docs") || 
                path.startsWith("/swagger-ui") ||
                path.startsWith("/sns");
-    }
-
-    private String extractToken(ServerWebExchange exchange) {
-        String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return null;
-        }
-        return authorization.substring(7);
     }
 
     public static class Config {
