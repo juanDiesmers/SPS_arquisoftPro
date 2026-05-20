@@ -5,7 +5,6 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -16,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitGatewayFilter extends AbstractGatewayFilterFactory<RateLimitGatewayFilter.Config> {
 
     private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
-    private static final int REQUESTS_PER_MINUTE = 60;
+    private static final int REQUESTS_PER_MINUTE = 100;
 
     public RateLimitGatewayFilter() {
         super(Config.class);
@@ -25,14 +24,24 @@ public class RateLimitGatewayFilter extends AbstractGatewayFilterFactory<RateLim
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            String remoteAddr = exchange.getRequest().getRemoteAddress() != null ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
+            String remoteAddr = getRemoteAddress(exchange);
             TokenBucket bucket = buckets.computeIfAbsent(remoteAddr, key -> new TokenBucket(REQUESTS_PER_MINUTE, Duration.ofMinutes(1)));
+            
             if (!bucket.tryConsume()) {
                 exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                 return exchange.getResponse().setComplete();
             }
+            
             return chain.filter(exchange);
         };
+    }
+
+    private String getRemoteAddress(ServerWebExchange exchange) {
+        if (exchange.getRequest().getRemoteAddress() != null) {
+            return exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
+        }
+        String forwarded = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
+        return (forwarded != null) ? forwarded.split(",")[0].trim() : "unknown";
     }
 
     public static class Config {

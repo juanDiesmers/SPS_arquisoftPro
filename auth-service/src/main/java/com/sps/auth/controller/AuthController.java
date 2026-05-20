@@ -2,6 +2,8 @@ package com.sps.auth.controller;
 
 import com.sps.auth.dto.LoginRequest;
 import com.sps.auth.dto.LoginResponse;
+import com.sps.auth.dto.RegisterRequest;
+import com.sps.auth.dto.RegisterResponse;
 import com.sps.auth.dto.ValidateRequest;
 import com.sps.auth.dto.ValidateResponse;
 import com.sps.auth.service.AuthService;
@@ -17,6 +19,12 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+        RegisterResponse response = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")

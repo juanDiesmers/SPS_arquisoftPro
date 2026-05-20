@@ -2,7 +2,6 @@ package com.sps.gateway.filters;
 
 import com.sps.gateway.security.JwtTokenProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,18 +23,29 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String path = exchange.getRequest().getPath().value();
-            if (path.startsWith("/auth") || path.startsWith("/actuator") || path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
+            
+            // Skip JWT validation for public endpoints
+            if (isPublicPath(path)) {
                 return chain.filter(exchange);
             }
 
             String token = extractToken(exchange);
+            
             if (token == null || !jwtTokenProvider.validateToken(token)) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
-
+            
             return chain.filter(exchange);
         };
+    }
+
+    private boolean isPublicPath(String path) {
+        return path.startsWith("/auth") || 
+               path.startsWith("/actuator") || 
+               path.startsWith("/v3/api-docs") || 
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/sns");
     }
 
     private String extractToken(ServerWebExchange exchange) {

@@ -23,25 +23,32 @@ public class RouteConfig {
                         .uri("http://auth-service:8081"))
 
                 .route("catalog-service", r -> r
-                        .path("/planes/**")
+                        .path("/catalog/**")
                         .filters(f -> f
+                                .rewritePath("/catalog/(?<segment>.*)", "/planes/${segment}")
                                 .filter(jwtFilter.apply(new JwtAuthenticationFilter.Config()))
                                 .filter(rateLimitFilter.apply(new RateLimitGatewayFilter.Config())))
                         .uri("http://catalog-service:8082"))
 
                 .route("purchase-service", r -> r
-                        .path("/compras/**")
+                        .path("/purchase/**")
                         .filters(f -> f
+                                .rewritePath("/purchase/(?<segment>.*)", "/compras/${segment}")
                                 .filter(jwtFilter.apply(new JwtAuthenticationFilter.Config()))
                                 .filter(rateLimitFilter.apply(new RateLimitGatewayFilter.Config())))
                         .uri("http://purchase-service:8083"))
 
                 .route("saludpay-service", r -> r
-                        .path("/api/**")
+                        .path("/payments/**")
                         .filters(f -> f
+                                .rewritePath("/payments/(?<segment>.*)", "/api/${segment}")
                                 .filter(jwtFilter.apply(new JwtAuthenticationFilter.Config()))
                                 .filter(rateLimitFilter.apply(new RateLimitGatewayFilter.Config())))
                         .uri("http://saludpay:8086"))
+
+                .route("sns-mock-service", r -> r
+                        .path("/sns/**")
+                        .uri("http://sns-mock:8085"))
 
                 .build();
     }
