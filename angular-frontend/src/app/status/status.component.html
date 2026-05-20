@@ -1,0 +1,35 @@
+<div class="status-container">
+  <h2>Estado de la Compra</h2>
+  <div *ngIf="!purchaseId">
+    <p>No se ha especificado una compra.</p>
+  </div>
+  <div *ngIf="purchase" class="status-card">
+    <div class="status-header">
+      <h3>Compra #{{ purchase.id }}</h3>
+      <span class="badge" [ngClass]="purchase.estado">{{ purchase.estado }}</span>
+    </div>
+    
+    <div class="status-details">
+      <p><strong>Total:</strong> ${{ purchase.total }}</p>
+      <p><strong>Fecha:</strong> {{ purchase.createdAt | date:'medium' }}</p>
+      <p *ngIf="purchase.snsResult"><strong>Respuesta SNS:</strong> {{ purchase.snsResult }}</p>
+    </div>
+
+    <div *ngIf="purchase.estado === 'VALIDANDO_SNS'" class="alert alert-info">
+      Esperando validación de la Superintendencia Nacional de Salud...
+    </div>
+
+    <div *ngIf="purchase.estado === 'PENDIENTE_PAGO'" class="alert alert-warning">
+      SNS aprobó la compra. Pendiente de pago en Salud Pay.
+      <button (click)="goToSaludPay()" class="btn btn-saludpay">Ir a Salud Pay</button>
+    </div>
+
+    <div *ngIf="purchase.estado === 'PAGADO'" class="alert alert-success">
+      ¡Pago completado exitosamente! Los servicios han sido notificados (SHC, SAM).
+    </div>
+
+    <div *ngIf="purchase.estado === 'RECHAZADO' || purchase.estado === 'ERROR_SNS'" class="alert alert-danger">
+      La compra no pudo ser procesada. Estado final: {{ purchase.estado }}.
+    </div>
+  </div>
+</div>

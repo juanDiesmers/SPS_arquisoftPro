@@ -1,0 +1,35 @@
+server:
+  port: 8083
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/sps_purchase_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+resilience4j:
+  circuitbreaker:
+    instances:
+      purchaseCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+application:
+  name: sps-purchase-service
+sns:
+  url: ${SNS_SERVICE_URL:http://localhost:8085}
+saludpay:
+  url: ${SALUDPAY_SERVICE_URL:http://localhost:8086}

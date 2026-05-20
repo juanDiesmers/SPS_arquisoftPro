@@ -1,0 +1,11 @@
+<div class="catalog-header">
+  <h2>Catálogo de Planes de Salud</h2>
+</div>
+<div class="planes-grid">
+  <div class="plan-card" *ngFor="let plan of planes">
+    <div class="plan-title">{{ plan.nombre }}</div>
+    <div class="plan-price">${{ plan.precio }}</div>
+    <p class="plan-desc">{{ plan.descripcion }}</p>
+    <button (click)="addToCart(plan)" class="btn btn-outline">Agregar al Carrito</button>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+
+.cart-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.empty-cart { text-align: center; padding: 3rem; color: #666; font-size: 1.1rem; }
+.cart-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+.cart-table th, .cart-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+.cart-table th { color: #0f4c75; font-weight: 600; background-color: #f8f9fa; }
+.price { font-weight: bold; color: #1b262c; }
+.btn-remove { background: #d9534f; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-remove:hover { background: #c9302c; }
+.cart-actions { margin-top: 2rem; text-align: right; }
+.btn-primary { padding: 0.75rem 2rem; background-color: #3282b8; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+.btn-primary:hover { background-color: #0f4c75; }

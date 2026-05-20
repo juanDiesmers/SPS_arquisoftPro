@@ -1,0 +1,11 @@
+
+.sp-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; background-color: #2c3e50; margin: -2rem; padding: 2rem; border-radius: 8px; }
+.sp-card { background: white; padding: 3rem; border-radius: 12px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); width: 400px; text-align: center; }
+.sp-logo { font-size: 2rem; font-weight: 900; color: #f39c12; margin-bottom: 2rem; letter-spacing: -1px; }
+.sp-text { color: #7f8c8d; margin-bottom: 1rem; }
+.sp-amount { font-size: 3rem; font-weight: bold; color: #2c3e50; margin-bottom: 2rem; }
+.btn-pay { width: 100%; padding: 1.25rem; font-size: 1.25rem; background-color: #27ae60; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s, background-color 0.3s; }
+.btn-pay:hover:not(:disabled) { background-color: #2ecc71; transform: scale(1.02); }
+.sp-success { color: #27ae60; }
+.sp-success .icon { font-size: 4rem; font-weight: bold; line-height: 1; }
+.sp-success h3 { margin: 1rem 0 0.5rem; color: #2c3e50; }

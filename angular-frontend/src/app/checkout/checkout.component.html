@@ -1,0 +1,19 @@
+<div class="checkout-container">
+  <h2>Confirmar Compra</h2>
+  <div class="summary-card">
+    <h3>Resumen</h3>
+    <ul class="summary-list">
+      <li *ngFor="let p of cart">
+        <span>{{ p.nombre }}</span>
+        <strong>${{ p.precio }}</strong>
+      </li>
+    </ul>
+    <div class="summary-total">
+      <span>Total a Pagar:</span>
+      <strong>${{ total }}</strong>
+    </div>
+    <button (click)="confirmPurchase()" class="btn btn-success" [disabled]="loading">
+      {{ loading ? 'Procesando...' : 'Confirmar y Enviar a SNS' }}
+    </button>
+  </div>
+</div>

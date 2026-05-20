@@ -1,0 +1,225 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: sps_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sps-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: sps_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sps-network
+
+  api-gateway:
+    build: ./gateway-service
+    container_name: sps_api_gateway
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      CATALOG_SERVICE_URL: http://catalog-service:8082
+      PURCHASE_SERVICE_URL: http://purchase-service:8083
+      SALUDPAY_SERVICE_URL: http://saludpay:8086
+    ports:
+      - "8080:8080"
+    networks:
+      - sps-network
+
+  auth-service:
+    build: ./auth-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      JWT_SECRET: ${JWT_SECRET}
+      DB_URL: jdbc:mysql://mysql:3306/${AUTH_DB_SCHEMA}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    expose:
+      - "8081"
+    networks:
+      - sps-network
+
+  catalog-service:
+    build: ./catalog-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://mysql:3306/${CATALOG_DB_SCHEMA}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    expose:
+      - "8082"
+    networks:
+      - sps-network
+
+  purchase-service:
+    build: ./purchase-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      sns-mock:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://mysql:3306/${PURCHASE_DB_SCHEMA}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
+      SNS_SERVICE_URL: http://sns-mock:8085
+      SALUDPAY_SERVICE_URL: http://saludpay:8086
+      JWT_SECRET: ${JWT_SECRET}
+    expose:
+      - "8083"
+    networks:
+      - sps-network
+
+  sns-mock:
+    build: ./sns-mock
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://mysql:3306/${SNS_DB_SCHEMA}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      PURCHASE_SERVICE_URL: http://purchase-service:8083
+      SNS_RESPONSE_MODE: APROBADO
+    expose:
+      - "8085"
+    networks:
+      - sps-network
+
+  saludpay:
+    build: ./saludpay-dotnet
+    container_name: sps_saludpay
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      purchase-service:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DB_URL: Server=mysql;Database=${SALUDPAY_DB_SCHEMA};User=${MYSQL_USER};Password=${MYSQL_PASSWORD};
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      SPS_SERVICE_URL: http://purchase-service:8083
+    ports:
+      - "8086:8086"
+    networks:
+      - sps-network
+
+  shc-service:
+    build: ./shc-service
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://mysql:3306/${SHC_DB_SCHEMA}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
+    expose:
+      - "8087"
+    networks:
+      - sps-network
+
+  sam-service:
+    build: ./sam-service
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://mysql:3306/${SAM_DB_SCHEMA}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
+    expose:
+      - "8088"
+    networks:
+      - sps-network
+
+  angular-frontend:
+    build: ./angular-frontend
+    container_name: sps_angular_frontend
+    restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_started
+    environment:
+      NGINX_HOST: ${NGINX_HOST}
+      NGINX_PORT: ${NGINX_PORT}
+    ports:
+      - "4200:80"
+    networks:
+      - sps-network
+
+volumes:
+  mysql-data:
+
+networks:
+  sps-network:
+    driver: bridge

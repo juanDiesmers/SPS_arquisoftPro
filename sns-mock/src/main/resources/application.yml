@@ -1,0 +1,20 @@
+server:
+  port: 8085
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/sns_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+application:
+  name: sps-sns-mock
+sns:
+  response-mode: APROBADO

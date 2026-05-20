@@ -1,0 +1,7 @@
+
+.app-container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.navbar { background-color: #0f4c75; color: white; display: flex; justify-content: space-between; padding: 1rem 2rem; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.navbar-brand { font-size: 1.5rem; font-weight: bold; }
+.navbar-menu a { color: white; text-decoration: none; margin-left: 1.5rem; cursor: pointer; font-weight: 500; }
+.navbar-menu a:hover { color: #bbe1fa; }
+.main-content { padding: 2rem; max-width: 1200px; margin: 0 auto; }

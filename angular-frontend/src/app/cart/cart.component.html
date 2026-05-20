@@ -1,0 +1,36 @@
+<div class="cart-container">
+  <h2>Tu Carrito de Compras</h2>
+  
+  <div *ngIf="cart.length === 0" class="empty-cart">
+    Tu carrito está vacío. <a routerLink="/catalog">Ir al catálogo</a>
+  </div>
+
+  <div *ngIf="cart.length > 0">
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Precio</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let plan of cart; let i = index">
+          <td>{{ plan.nombre }}</td>
+          <td class="price">${{ plan.precio }}</td>
+          <td><button (click)="remove(i)" class="btn-remove">X</button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td class="price"><strong>${{ total }}</strong></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="cart-actions">
+      <button (click)="checkout()" class="btn btn-primary">Proceder al Checkout</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: sps-api-gateway
+  cloud:
+    gateway:
+      routes: []
+    loadbalancer:
+      simple:
+        instances:
+          auth-service:
+            - uri: http://auth-service:8081
+          catalog-service:
+            - uri: http://catalog-service:8082
+          purchase-service:
+            - uri: http://purchase-service:8083
+          saludpay:
+            - uri: http://saludpay:8086
+jwt:
+  secret: ${JWT_SECRET}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

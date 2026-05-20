@@ -1,0 +1,10 @@
+
+.checkout-container { display: flex; flex-direction: column; align-items: center; }
+.summary-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 500px; margin-top: 1.5rem; }
+h3 { color: #0f4c75; margin-bottom: 1.5rem; }
+.summary-list { list-style: none; padding: 0; margin: 0; }
+.summary-list li { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+.summary-total { display: flex; justify-content: space-between; padding: 1.5rem 0; font-size: 1.25rem; color: #1b262c; border-top: 2px solid #3282b8; margin-top: 1rem; font-weight: bold; }
+.btn-success { width: 100%; padding: 1rem; background-color: #28a745; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+.btn-success:hover { background-color: #218838; }
+.btn-success:disabled { background-color: #94d3a2; cursor: not-allowed; }

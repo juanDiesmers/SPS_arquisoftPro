@@ -1,0 +1,17 @@
+<div class="sp-container">
+  <div class="sp-card">
+    <div class="sp-logo">Salud Pay</div>
+    <div *ngIf="!success">
+      <p class="sp-text">Estás a un paso de confirmar tu compra de salud.</p>
+      <div class="sp-amount">${{ total }}</div>
+      <button (click)="pagar()" class="btn btn-pay" [disabled]="loading">
+        {{ loading ? 'Procesando pago...' : 'Pagar Ahora' }}
+      </button>
+    </div>
+    <div *ngIf="success" class="sp-success">
+      <div class="icon">✓</div>
+      <h3>Pago Exitoso</h3>
+      <p>Redirigiendo a tu compra...</p>
+    </div>
+  </div>
+</div>
