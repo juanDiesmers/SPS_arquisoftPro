@@ -1,57 +1,57 @@
 package com.sps.auth.service;
 
 import com.sps.auth.dto.LoginRequest;
-import com.sps.auth.dto.LoginResponse;
 import com.sps.auth.dto.RegisterRequest;
-import com.sps.auth.dto.RegisterResponse;
 import com.sps.auth.entity.UserEntity;
 import com.sps.auth.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
+
+    public UserEntity register(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        UserEntity user = new UserEntity();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        return userRepository.save(user);
     }
 
-    public LoginResponse authenticate(LoginRequest request) {
-        UserEntity user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
-
+    public String login(LoginRequest request) {
+        UserEntity user = findByUsername(request.getUsername());
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new RuntimeException("Invalid credentials");
         }
-
-        String token = jwtService.generateToken(user.getUsername(), user.getRole());
-        return new LoginResponse(token, user.getUsername(), user.getRole());
-    }
-
-    public RegisterResponse register(RegisterRequest request) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-
-        UserEntity user = new UserEntity(
-                request.getUsername(),
-                passwordEncoder.encode(request.getPassword()),
-                request.getRole()
-        );
-        UserEntity savedUser = userRepository.save(user);
-        return new RegisterResponse(savedUser.getId(), savedUser.getUsername(), savedUser.getRole(), "User registered successfully");
+        return jwtService.generateToken(user.getUsername());
     }
 
     public boolean validateToken(String token) {
         return jwtService.validateToken(token);
     }
 
-    public String getUsernameFromToken(String token) {
-        return jwtService.parseClaims(token).getSubject();
+    public String extractUsername(String token) {
+        return jwtService.extractUsername(token);
+    }
+
+    public UserEntity findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

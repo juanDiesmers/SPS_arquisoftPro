@@ -1,73 +1,56 @@
 package com.sps.auth.entity;
 
 import jakarta.persistence.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
 public class UserEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(unique = true, nullable = false)
+    private String email;
 
     @Column(nullable = false)
     private String password;
 
+    // Nuevo campo role (agregar este)
     @Column(nullable = false)
-    private String role;
+    private String role = "USER";   // Valor por defecto
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public UserEntity() {}
-
-    public UserEntity(String username, String password, String role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-        this.createdAt = Instant.now();
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
