@@ -1,5 +1,6 @@
 package com.sps.catalog.service;
 
+import com.sps.catalog.dto.PlanRequest;
 import com.sps.catalog.dto.PlanResponse;
 import com.sps.catalog.entity.PlanEntity;
 import com.sps.catalog.repository.PlanRepository;
@@ -26,6 +27,18 @@ public class CatalogService {
         PlanEntity plan = planRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found: " + id));
         return toDto(plan);
+    }
+
+    public PlanResponse createPlan(PlanRequest request) {
+        PlanEntity entity = new PlanEntity(
+                request.getNombre(),
+                request.getDescripcion(),
+                request.getPrecio(),
+                request.getConvenio(),
+                request.isActivo()
+        );
+        PlanEntity saved = planRepository.save(entity);
+        return toDto(saved);
     }
 
     private PlanResponse toDto(PlanEntity entity) {

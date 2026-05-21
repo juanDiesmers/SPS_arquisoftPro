@@ -1,5 +1,6 @@
 package com.sps.catalog.controller;
 
+import com.sps.catalog.dto.PlanRequest;
 import com.sps.catalog.dto.PlanResponse;
 import com.sps.catalog.service.CatalogService;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +25,10 @@ public class CatalogController {
     @GetMapping("/{id}")
     public ResponseEntity<PlanResponse> getPlan(@PathVariable Long id) {
         return ResponseEntity.ok(catalogService.getPlan(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<PlanResponse> createPlan(@RequestBody PlanRequest request) {
+        return ResponseEntity.ok(catalogService.createPlan(request));
     }
 }
