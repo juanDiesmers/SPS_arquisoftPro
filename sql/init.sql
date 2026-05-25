@@ -73,13 +73,14 @@ CREATE TABLE IF NOT EXISTS compras (
 
 USE saludpay_db;
 
-CREATE TABLE IF NOT EXISTS pagos (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    compra_id BIGINT NOT NULL,
-    cliente_id BIGINT NOT NULL,
-    estado VARCHAR(50) NOT NULL,
-    monto DECIMAL(12,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS pending_payments (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    CompraId BIGINT NOT NULL,
+    ClienteId BIGINT NOT NULL,
+    Total DECIMAL(12,2) NOT NULL,
+    Estado VARCHAR(50) NOT NULL,
+    CreatedAt DATETIME(6),
+    UpdatedAt DATETIME(6)
 );
 
 USE shc_db;

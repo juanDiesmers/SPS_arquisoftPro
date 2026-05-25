@@ -1,31 +1,41 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/auth/**
+        - id: catalog-service
+          uri: http://catalog-service:8082
+          predicates:
+            - Path=/catalog/**
+        - id: purchase-service
+          uri: http://purchase-service:8083
+          predicates:
+            - Path=/purchases/**
+        - id: saludpay-service
+          uri: http://saludpay:8086
+          predicates:
+            - Path=/payments/**
+      # Configuración opcional de loadbalancer (si usas discovery)
+      loadbalancer:
+        enabled: true
+
+  # Seguridad: si usas Spring Security en el gateway, desactiva CSRF etc.
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-service:8081  # si validas tokens en gateway
+
 server:
   port: 8080
 
-spring:
-  application:
-    name: sps-api-gateway
-
-  cloud:
-    gateway:
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter:
-              replenishRate: 100
-              burstCapacity: 200
-
-jwt:
-  secret: ${JWT_SECRET}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-
-  swagger-ui:
-    path: /swagger-ui.html
+# Para evitar logs excesivos de Reactor Netty
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: INFO
