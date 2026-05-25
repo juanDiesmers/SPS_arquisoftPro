@@ -15,7 +15,6 @@ public class PurchaseRequest {
     @NotEmpty(message = "planIds is required")
     private List<Long> planIds;
 
-    @NotNull(message = "total is required")
     private BigDecimal total;
 
     public Long getClienteId() {

@@ -24,33 +24,47 @@ public class CatalogDataLoader implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (planRepository.count() == 0 && servicioMedicoRepository.count() == 0) {
-            // Seed services for Basic
-            ServicioMedicoEntity consultaGeneral = servicioMedicoRepository.save(new ServicioMedicoEntity("Consulta General", new BigDecimal("50000.00")));
-            ServicioMedicoEntity examenesLab = servicioMedicoRepository.save(new ServicioMedicoEntity("Exámenes de Laboratorio", new BigDecimal("30000.00")));
-            ServicioMedicoEntity hospBasica = servicioMedicoRepository.save(new ServicioMedicoEntity("Hospitalización Básica", new BigDecimal("49900.00")));
+        if (planRepository.count() == 0) {
+            // ── Servicios médicos base ───────────────────────────────────────────────
+            ServicioMedicoEntity consultaGeneral = servicioMedicoRepository.save(
+                    new ServicioMedicoEntity("Consulta General",          new BigDecimal("50000.00")));
+            ServicioMedicoEntity laboratorio     = servicioMedicoRepository.save(
+                    new ServicioMedicoEntity("Exámenes de Laboratorio",   new BigDecimal("30000.00")));
+            ServicioMedicoEntity consultaEsp     = servicioMedicoRepository.save(
+                    new ServicioMedicoEntity("Consulta con Especialista", new BigDecimal("80000.00")));
+            ServicioMedicoEntity radiologia      = servicioMedicoRepository.save(
+                    new ServicioMedicoEntity("Radiología y Diagnóstico",  new BigDecimal("48000.00")));
+            ServicioMedicoEntity hospitalizacion = servicioMedicoRepository.save(
+                    new ServicioMedicoEntity("Hospitalización",           new BigDecimal("151900.00")));
 
-            // Seed services for Advanced
-            ServicioMedicoEntity consultaEsp = servicioMedicoRepository.save(new ServicioMedicoEntity("Consulta con Especialista", new BigDecimal("100000.00")));
-            ServicioMedicoEntity examenesAvanzados = servicioMedicoRepository.save(new ServicioMedicoEntity("Exámenes Avanzados", new BigDecimal("80000.00")));
-            ServicioMedicoEntity hospEspecializada = servicioMedicoRepository.save(new ServicioMedicoEntity("Hospitalización Especializada", new BigDecimal("99900.00")));
-
-            // Seed services for Family
-            ServicioMedicoEntity coberturaFam = servicioMedicoRepository.save(new ServicioMedicoEntity("Cobertura Médica Familiar", new BigDecimal("399900.00")));
-
-            // Seed Plan Básico
-            PlanEntity planBasico = new PlanEntity("Plan Básico", "Cobertura de consulta general y laboratorio.", BigDecimal.ZERO, "Convenio Nacional", true);
-            planBasico.setServicios(List.of(consultaGeneral, examenesLab, hospBasica));
+            // ── Plan Básico: Consulta General + Laboratorio  →  $80.000 ─────────────
+            PlanEntity planBasico = new PlanEntity();
+            planBasico.setNombre("Plan Básico");
+            planBasico.setDescripcion("Cobertura esencial con consulta general y exámenes de laboratorio básicos.");
+            planBasico.setConvenio("Convenio Nacional");
+            planBasico.setActivo(true);
+            planBasico.setServicios(List.of(consultaGeneral, laboratorio));
+            planBasico.calculatePrice();   // precio = 80.000
             planRepository.save(planBasico);
 
-            // Seed Plan Avanzado
-            PlanEntity planAvanzado = new PlanEntity("Plan Avanzado", "Cobertura de especialistas y exámenes avanzados.", BigDecimal.ZERO, "Convenio Premium", true);
-            planAvanzado.setServicios(List.of(consultaEsp, examenesAvanzados, hospEspecializada));
+            // ── Plan Avanzado: + Especialista + Radiología  →  $208.000 ─────────────
+            PlanEntity planAvanzado = new PlanEntity();
+            planAvanzado.setNombre("Plan Avanzado");
+            planAvanzado.setDescripcion("Acceso a especialistas, laboratorio y radiología diagnóstica.");
+            planAvanzado.setConvenio("Convenio Premium");
+            planAvanzado.setActivo(true);
+            planAvanzado.setServicios(List.of(consultaGeneral, laboratorio, consultaEsp, radiologia));
+            planAvanzado.calculatePrice(); // precio = 208.000
             planRepository.save(planAvanzado);
 
-            // Seed Plan Familiar
-            PlanEntity planFamiliar = new PlanEntity("Plan Familiar", "Cobertura para hasta 4 miembros de la familia.", BigDecimal.ZERO, "Convenio Familiar", true);
-            planFamiliar.setServicios(List.of(coberturaFam));
+            // ── Plan Familiar: todos los servicios  →  $359.900 ─────────────────────
+            PlanEntity planFamiliar = new PlanEntity();
+            planFamiliar.setNombre("Plan Familiar");
+            planFamiliar.setDescripcion("Cobertura completa para toda la familia: incluye hospitalización y todos los especialistas.");
+            planFamiliar.setConvenio("Convenio Familiar");
+            planFamiliar.setActivo(true);
+            planFamiliar.setServicios(List.of(consultaGeneral, laboratorio, consultaEsp, radiologia, hospitalizacion));
+            planFamiliar.calculatePrice(); // precio = 359.900
             planRepository.save(planFamiliar);
         }
     }

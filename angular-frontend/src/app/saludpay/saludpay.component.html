@@ -1,17 +1,60 @@
 <div class="sp-container">
   <div class="sp-card">
-    <div class="sp-logo">Salud Pay</div>
-    <div *ngIf="!success">
-      <p class="sp-text">Estás a un paso de confirmar tu compra de salud.</p>
-      <div class="sp-amount">${{ total }}</div>
-      <button (click)="pagar()" class="btn btn-pay" [disabled]="loading">
-        {{ loading ? 'Procesando pago...' : 'Pagar Ahora' }}
+    <div class="sp-logo">Salud<span>Pay</span></div>
+
+    <!-- PASO 1: Login SaludPay -->
+    <div *ngIf="step === 1">
+      <h3 class="sp-title">Autenticación SaludPay</h3>
+      <p class="sp-subtitle">Ingresa tus credenciales de SaludPay para continuar</p>
+
+      <div class="form-group">
+        <label>Cédula</label>
+        <input type="text" [(ngModel)]="cedula" placeholder="Ej: 1001" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña SaludPay</label>
+        <input type="password" [(ngModel)]="spPassword" placeholder="Contraseña" class="form-control" />
+      </div>
+
+      <div *ngIf="spError" class="alert alert-error">{{ spError }}</div>
+
+      <button (click)="loginSaludPay()" class="btn btn-pay" [disabled]="loginLoading">
+        {{ loginLoading ? 'Verificando...' : 'Ingresar a SaludPay' }}
       </button>
+
+      <div class="sp-hint">
+        <small>Demo: cédula <strong>1001</strong>, contraseña <strong>password123</strong></small>
+      </div>
     </div>
-    <div *ngIf="success" class="sp-success">
+
+    <!-- PASO 2: Pagos pendientes -->
+    <div *ngIf="step === 2">
+      <h3 class="sp-title">Mis Pagos Pendientes</h3>
+      <div *ngIf="pagosLoading" class="sp-loading">Cargando pagos...</div>
+
+      <div *ngIf="!pagosLoading && pagosPendientes.length === 0" class="sp-empty">
+        No tienes pagos pendientes para la cédula {{ cedula }}
+      </div>
+
+      <div *ngFor="let pago of pagosPendientes" class="pago-card">
+        <div class="pago-info">
+          <span class="pago-label">Compra #{{ pago.compraId }}</span>
+          <span class="pago-amount">${{ pago.total | number }}</span>
+          <span class="pago-estado">{{ pago.estado }}</span>
+        </div>
+        <button (click)="ejecutarPago(pago.id)" class="btn btn-pay" [disabled]="pagoLoading">
+          {{ pagoLoading ? 'Procesando...' : 'Pagar Ahora' }}
+        </button>
+        <div *ngIf="pagoError" class="alert alert-error">{{ pagoError }}</div>
+      </div>
+    </div>
+
+    <!-- PASO 3: Confirmación -->
+    <div *ngIf="step === 3" class="sp-success">
       <div class="icon">✓</div>
-      <h3>Pago Exitoso</h3>
-      <p>Redirigiendo a tu compra...</p>
+      <h3>¡Pago Exitoso!</h3>
+      <p>Tu plan de salud ha sido activado.</p>
+      <p class="sp-redirect">Redirigiendo al estado de tu compra...</p>
     </div>
   </div>
 </div>

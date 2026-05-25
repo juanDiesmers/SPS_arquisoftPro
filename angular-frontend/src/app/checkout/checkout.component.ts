@@ -11,6 +11,7 @@ export class CheckoutComponent implements OnInit {
   cart: any[] = [];
   total: number = 0;
   loading: boolean = false;
+  error: string = '';
 
   constructor(private purchaseService: PurchaseService, private router: Router) {}
 
@@ -20,27 +21,34 @@ export class CheckoutComponent implements OnInit {
   }
 
   confirmPurchase() {
+    if (this.cart.length === 0) {
+      this.error = 'El carrito está vacío';
+      return;
+    }
+
     this.loading = true;
+    this.error = '';
+
     const planIds = this.cart.map(p => p.id);
-    const userId = Number(localStorage.getItem('userId'));
+    const userId  = Number(localStorage.getItem('userId'));
+    const cedula  = localStorage.getItem('cedula') || '';
 
     const request = {
       clienteId: userId,
+      cedula: cedula,
       planIds: planIds,
       total: this.total
     };
 
     this.purchaseService.createPurchase(request).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         localStorage.removeItem('cart');
         this.loading = false;
-        // The purchase is now in PENDIENTE or VALIDANDO_SNS
-        // Usually, we would wait or poll, but let's go to status page.
         this.router.navigate(['/status'], { queryParams: { id: res.id } });
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
-        alert('Error al crear compra');
+        this.error = 'Error al crear la compra. Intenta nuevamente.';
       }
     });
   }

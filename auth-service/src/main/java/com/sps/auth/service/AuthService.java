@@ -31,6 +31,9 @@ public class AuthService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        if (request.getCedula() != null) {
+            user.setCedula(request.getCedula());
+        }
         return userRepository.save(user);
     }
 

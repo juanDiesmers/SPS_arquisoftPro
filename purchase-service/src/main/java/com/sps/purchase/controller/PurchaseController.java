@@ -30,6 +30,11 @@ public class PurchaseController {
         return ResponseEntity.ok(purchaseService.getPurchase(id));
     }
 
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<java.util.List<PurchaseResponse>> getPurchasesByCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(purchaseService.getPurchasesByCliente(clienteId));
+    }
+
     @PostMapping("/webhook-sns")
     public ResponseEntity<PurchaseResponse> handleSnsWebhook(@Valid @RequestBody WebhookSnsRequest request) {
         return ResponseEntity.ok(purchaseService.handleWebhookSns(request));

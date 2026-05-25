@@ -1,11 +1,39 @@
 <div class="catalog-header">
   <h2>Catálogo de Planes de Salud</h2>
+  <p class="catalog-subtitle">Selecciona el plan que mejor se adapte a tus necesidades</p>
 </div>
+
 <div class="planes-grid">
   <div class="plan-card" *ngFor="let plan of planes">
-    <div class="plan-title">{{ plan.nombre }}</div>
-    <div class="plan-price">${{ plan.precio }}</div>
+
+    <div class="plan-header">
+      <div class="plan-title">{{ plan.nombre }}</div>
+      <div class="plan-convenio">{{ plan.convenio }}</div>
+    </div>
+
     <p class="plan-desc">{{ plan.descripcion }}</p>
-    <button (click)="addToCart(plan)" class="btn btn-outline">Agregar al Carrito</button>
+
+    <!-- Servicios médicos incluidos -->
+    <div class="servicios-section" *ngIf="plan.servicios && plan.servicios.length > 0">
+      <div class="servicios-label">✅ Servicios incluidos:</div>
+      <ul class="servicios-list">
+        <li *ngFor="let s of plan.servicios" class="servicio-item">
+          <span class="servicio-icon">🏥</span>
+          <span class="servicio-nombre">{{ s.nombre }}</span>
+          <span class="servicio-precio">${{ s.precio | number:'1.0-0' }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="plan-footer">
+      <div class="plan-price-block">
+        <span class="price-label">Total del Plan</span>
+        <span class="plan-price">${{ plan.precio | number:'1.0-0' }}</span>
+      </div>
+      <button (click)="addToCart(plan)" class="btn-add-cart">
+        🛒 Agregar al Carrito
+      </button>
+    </div>
+
   </div>
 </div>

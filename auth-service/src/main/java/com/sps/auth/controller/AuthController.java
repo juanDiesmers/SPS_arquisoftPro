@@ -36,8 +36,8 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             String token = authService.login(request);
-            UserEntity user = authService.findByUsername(request.getUsername()); // necesitas agregar este método en AuthService
-            LoginResponse response = new LoginResponse(token, user.getId(), user.getUsername(), user.getEmail());
+            UserEntity user = authService.findByUsername(request.getUsername());
+            LoginResponse response = new LoginResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getCedula());
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());

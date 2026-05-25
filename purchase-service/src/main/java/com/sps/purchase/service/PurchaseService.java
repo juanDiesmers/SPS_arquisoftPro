@@ -40,6 +40,7 @@ public class PurchaseService {
     private final NotificationService notificationService;
     private final String snsServiceUrl;
     private final String saludPayUrl;
+    private final String catalogServiceUrl;
 
     public PurchaseService(PurchaseRepository purchaseRepository,
                            RabbitTemplate rabbitTemplate,
@@ -54,27 +55,63 @@ public class PurchaseService {
         this.notificationService = notificationService;
         this.snsServiceUrl = env.getProperty("sns.url", "http://localhost:8085");
         this.saludPayUrl = env.getProperty("saludpay.url", "http://localhost:8086");
+        this.catalogServiceUrl = env.getProperty("catalog.url", "http://localhost:8082");
     }
 
     @Transactional
     public PurchaseResponse createPurchase(PurchaseRequest request) {
         String cedula = request.getCedula() != null ? request.getCedula() : String.valueOf(request.getClienteId());
+        // REGLA DE NEGOCIO: el total siempre se calcula en el backend consultando el catálogo.
+        // No se acepta el total que viene del cliente para evitar manipulación de precios.
+        BigDecimal totalCalculado = calculateTotalFromCatalog(request.getPlanIds());
+        log.info("Total calculado en backend para planIds {}: ${}", request.getPlanIds(), totalCalculado);
         PurchaseEntity purchase = new PurchaseEntity(
                 request.getClienteId(),
                 cedula,
                 PurchaseStatus.VALIDANDO_SNS,
-                request.getTotal(),
-                serializePayload(request)
+                totalCalculado,
+                serializePayload(request, totalCalculado)
         );
         purchase = purchaseRepository.save(purchase);
         invokeSnsValidationAsync(purchase);
         return toResponse(purchase);
     }
 
+    /**
+     * Consulta el catalog-service para obtener el precio real de cada plan
+     * y retorna la suma total. Cumple la restricción: "lógica de negocio en el backend".
+     */
+    private BigDecimal calculateTotalFromCatalog(List<Long> planIds) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (Long planId : planIds) {
+            try {
+                Map<?, ?> plan = webClient.get()
+                        .uri(catalogServiceUrl + "/planes/" + planId)
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .block();
+                if (plan != null && plan.get("precio") != null) {
+                    total = total.add(new BigDecimal(plan.get("precio").toString()));
+                }
+            } catch (Exception e) {
+                log.error("Error al consultar precio del plan {} en catalog-service: {}", planId, e.getMessage());
+                throw new RuntimeException("No se pudo obtener el precio del plan " + planId + " desde el catálogo.");
+            }
+        }
+        return total;
+    }
+
     public PurchaseResponse getPurchase(Long id) {
         PurchaseEntity purchase = purchaseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Compra no encontrada: " + id));
         return toResponse(purchase);
+    }
+
+    public List<PurchaseResponse> getPurchasesByCliente(Long clienteId) {
+        return purchaseRepository.findByClienteIdOrderByCreatedAtDesc(clienteId)
+                .stream()
+                .map(this::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional
@@ -117,12 +154,12 @@ public class PurchaseService {
         return toResponse(purchase);
     }
 
-    private String serializePayload(PurchaseRequest request) {
+    private String serializePayload(PurchaseRequest request, BigDecimal totalCalculado) {
         try {
             return objectMapper.writeValueAsString(Map.of(
                     "clienteId", request.getClienteId(),
                     "planIds", request.getPlanIds(),
-                    "total", request.getTotal()
+                    "total", totalCalculado
             ));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Error serializando payload", e);
@@ -199,17 +236,49 @@ public class PurchaseService {
     }
 
     public void publishPurchaseCompleted(PurchaseEntity purchase) {
+        List<Long> planIds = extractPlanIds(purchase.getPayload());
+        List<String> nombresPlanes = new java.util.ArrayList<>();
+        List<String> serviciosMedicos = new java.util.ArrayList<>();
+
+        // Consultar el catálogo para obtener los nombres de planes y servicios médicos
+        for (Long planId : planIds) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> plan = webClient.get()
+                        .uri(catalogServiceUrl + "/planes/" + planId)
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .block();
+                if (plan != null) {
+                    nombresPlanes.add((String) plan.getOrDefault("nombre", "Plan #" + planId));
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> servicios = (List<Map<String, Object>>) plan.get("servicios");
+                    if (servicios != null) {
+                        servicios.forEach(s -> serviciosMedicos.add((String) s.getOrDefault("nombre", "Servicio")));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("No se pudo consultar el plan {} del catálogo para el evento: {}", planId, e.getMessage());
+                nombresPlanes.add("Plan #" + planId);
+            }
+        }
+
         PurchaseCompletedEvent event = new PurchaseCompletedEvent(
                 purchase.getId(),
                 purchase.getClienteId(),
-                extractPlanIds(purchase.getPayload()),
+                planIds,
+                nombresPlanes,
+                serviciosMedicos,
                 purchase.getTotal(),
                 Instant.now(),
                 purchase.getEstado().name()
         );
+        log.info("Publicando PurchaseCompletedEvent: compraId={}, planes={}, servicios={}",
+                purchase.getId(), nombresPlanes, serviciosMedicos);
         rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.SHC_ROUTING_KEY, event);
         rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.SAM_ROUTING_KEY, event);
     }
+
 
     private List<Long> extractPlanIds(String payload) {
         try {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SaludPay.Api.Data;
+using SaludPay.Api.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace SaludPay.Api.Controllers
@@ -27,7 +28,18 @@ namespace SaludPay.Api.Controllers
             var user = await _dbContext.Users
                 .FirstOrDefaultAsync(u => u.Cedula == request.Cedula);
 
-            if (user == null || user.Password != request.Password)
+            if (user == null)
+            {
+                // Register user dynamically on-the-fly!
+                user = new SaludPayUser
+                {
+                    Cedula = request.Cedula,
+                    Password = request.Password
+                };
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
+            }
+            else if (user.Password != request.Password)
             {
                 return Unauthorized(new { message = "Cédula o contraseña incorrectas." });
             }

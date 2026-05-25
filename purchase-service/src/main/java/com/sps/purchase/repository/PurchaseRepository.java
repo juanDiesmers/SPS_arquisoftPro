@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface PurchaseRepository extends JpaRepository<PurchaseEntity, Long> {
     List<PurchaseEntity> findByEstado(PurchaseStatus estado);
+    List<PurchaseEntity> findByClienteIdOrderByCreatedAtDesc(Long clienteId);
 }

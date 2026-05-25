@@ -29,15 +29,28 @@ public class PurchaseCompletedListener {
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 
+        // Nombres de los planes para referencia de la agenda
+        String nombresPlanes = event.getNombresPlanes() != null
+                ? String.join(", ", event.getNombresPlanes())
+                : planIds;
+
+        // Servicios médicos: determina qué doctores especialistas hay que agendar
+        String serviciosMedicos = event.getServiciosMedicos() != null
+                ? String.join(", ", event.getServiciosMedicos())
+                : "";
+
         SamRecord record = new SamRecord(
                 event.getCompraId(),
                 event.getClienteId(),
                 planIds,
+                nombresPlanes,
+                serviciosMedicos,
                 event.getTotal(),
                 event.getEstado(),
                 Instant.now()
         );
         repository.save(record);
-        log.info("SAM procesó compra {} con estado {}", event.getCompraId(), event.getEstado());
+        log.info("SAM agendo servicios para compra {} | Planes: {} | Servicios a agendar: {}",
+                event.getCompraId(), nombresPlanes, serviciosMedicos);
     }
 }

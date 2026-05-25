@@ -6,14 +6,16 @@ public class LoginResponse {
     private Long id;
     private String username;
     private String email;
+    private String cedula;
 
-    public LoginResponse(String token, Long id, String username, String email) {
+    public LoginResponse(String token, Long id, String username, String email, String cedula) {
         this.token = token;
         this.id = id;
         this.username = username;
         this.email = email;
+        this.cedula = cedula;
     }
-    // Getters y Setters
+
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
     public String getType() { return type; }
@@ -24,4 +26,6 @@ public class LoginResponse {
     public void setUsername(String username) { this.username = username; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public String getCedula() { return cedula; }
+    public void setCedula(String cedula) { this.cedula = cedula; }
 }

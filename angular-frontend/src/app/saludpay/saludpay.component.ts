@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-saludpay',
@@ -8,40 +8,104 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./saludpay.component.css']
 })
 export class SaludpayComponent implements OnInit {
+  // Paso 1: Login SaludPay
+  cedula: string = '';
+  spPassword: string = '';
+  spToken: string = '';
+  spError: string = '';
+  loginLoading: boolean = false;
+
+  // Paso 2: Pagos pendientes
   compraId: number = 0;
   total: number = 0;
-  loading = false;
-  success = false;
+  pagosPendientes: any[] = [];
+  pagosLoading: boolean = false;
 
-  constructor(private route: ActivatedRoute, private http: HttpClient, private router: Router) {}
+  // Paso 3: Ejecutar pago
+  pagoLoading: boolean = false;
+  success: boolean = false;
+  pagoError: string = '';
+
+  step: number = 1; // 1=login, 2=pagos, 3=confirmación
+
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      this.compraId = Number(params['id']);
-      this.total = Number(params['total']);
+      this.compraId = Number(params['id'] || 0);
+      this.total    = Number(params['total'] || 0);
+    });
+    // Pre-llenar cédula desde localStorage si está disponible
+    this.cedula = localStorage.getItem('cedula') || '';
+  }
+
+  /** Paso 1 — Autenticarse en SaludPay con cédula */
+  loginSaludPay() {
+    if (!this.cedula || !this.spPassword) {
+      this.spError = 'Ingresa tu cédula y contraseña de SaludPay';
+      return;
+    }
+    this.loginLoading = true;
+    this.spError = '';
+
+    this.http.post<any>('/api/saludpay/auth/login', {
+      cedula: this.cedula,
+      password: this.spPassword
+    }).subscribe({
+      next: (res) => {
+        this.spToken = res.token;
+        this.loginLoading = false;
+        this.step = 2;
+        this.cargarPagosPendientes();
+      },
+      error: () => {
+        this.loginLoading = false;
+        this.spError = 'Cédula o contraseña incorrectos en SaludPay';
+      }
     });
   }
 
-  pagar() {
-    this.loading = true;
-    const body = {
-      compraId: this.compraId,
-      clienteId: Number(localStorage.getItem('userId')),
-      monto: this.total,
-      metodoPago: 'TARJETA_CREDITO'
-    };
-    // The gateway routes /api/saludpay to SaludPay .NET Service
-    this.http.post('/api/saludpay/pagar', body).subscribe({
+  /** Paso 2 — Cargar pagos pendientes por cédula */
+  cargarPagosPendientes() {
+    this.pagosLoading = true;
+    const headers = new HttpHeaders({ Authorization: `Bearer ${this.spToken}` });
+
+    this.http.get<any[]>(`/api/saludpay/pagos/mis-pagos?cedula=${this.cedula}`, { headers }).subscribe({
+      next: (pagos) => {
+        this.pagosPendientes = pagos.filter(p => p.estado === 'PENDIENTE_PAGO');
+        this.pagosLoading = false;
+      },
+      error: () => {
+        this.pagosLoading = false;
+      }
+    });
+  }
+
+  /** Paso 3 — Ejecutar el pago */
+  ejecutarPago(pagoId: number) {
+    this.pagoLoading = true;
+    this.pagoError = '';
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${this.spToken}`,
+      'Content-Type': 'application/json'
+    });
+
+    this.http.post<any>(`/api/saludpay/pagos/${pagoId}/pagar`, {}, { headers }).subscribe({
       next: () => {
-        this.loading = false;
+        this.pagoLoading = false;
         this.success = true;
+        this.step = 3;
         setTimeout(() => {
           this.router.navigate(['/status'], { queryParams: { id: this.compraId } });
         }, 3000);
       },
       error: () => {
-        this.loading = false;
-        alert('Error en el pago');
+        this.pagoLoading = false;
+        this.pagoError = 'Error al procesar el pago. Intenta nuevamente.';
       }
     });
   }

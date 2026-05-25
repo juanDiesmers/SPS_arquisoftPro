@@ -1,35 +1,90 @@
 <div class="status-container">
-  <h2>Estado de la Compra</h2>
-  <div *ngIf="!purchaseId">
-    <p>No se ha especificado una compra.</p>
-  </div>
-  <div *ngIf="purchase" class="status-card">
-    <div class="status-header">
-      <h3>Compra #{{ purchase.id }}</h3>
-      <span class="badge" [ngClass]="purchase.estado">{{ purchase.estado }}</span>
-    </div>
+  <!-- 1. DETALLE DE COMPRA ESPECÍFICA -->
+  <div *ngIf="purchaseId">
+    <h2>Estado de la Compra</h2>
     
-    <div class="status-details">
-      <p><strong>Total:</strong> ${{ purchase.total }}</p>
-      <p><strong>Fecha:</strong> {{ purchase.createdAt | date:'medium' }}</p>
-      <p *ngIf="purchase.snsResult"><strong>Respuesta SNS:</strong> {{ purchase.snsResult }}</p>
+    <div *ngIf="purchase" class="status-card">
+      <div class="status-header">
+        <h3>Compra #{{ purchase.id }}</h3>
+        <span class="badge" [ngClass]="purchase.estado">{{ purchase.estado }}</span>
+      </div>
+      
+      <div class="status-details">
+        <p><strong>Planes Incluidos:</strong> <span class="plan-name-highlight">{{ getPlanNames(purchase.payload) }}</span></p>
+        <p><strong>Total:</strong> ${{ purchase.total | number }}</p>
+        <p><strong>Fecha:</strong> {{ purchase.createdAt | date:'medium' }}</p>
+        <p *ngIf="purchase.snsResult"><strong>Respuesta SNS:</strong> {{ purchase.snsResult }}</p>
+      </div>
+
+      <!-- Servicios médicos incluidos en la compra -->
+      <div class="servicios-compra-section" *ngIf="getPlanServices(purchase.payload).length > 0">
+        <h4>🏥 Servicios Médicos Incluidos</h4>
+        <ul class="servicios-compra-list">
+          <li *ngFor="let s of getPlanServices(purchase.payload)" class="servicio-compra-item">
+            <span class="servicio-icon">🩺</span>
+            <span class="servicio-nombre">{{ s.nombre }}</span>
+            <span class="servicio-precio">${{ s.precio | number:'1.0-0' }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div *ngIf="purchase.estado === 'VALIDANDO_SNS'" class="alert alert-info">
+        Esperando validación de la Superintendencia Nacional de Salud...
+      </div>
+
+      <div *ngIf="purchase.estado === 'PENDIENTE_PAGO'" class="alert alert-warning">
+        SNS aprobó la compra. Pendiente de pago en Salud Pay.
+        <button (click)="goToSaludPay()" class="btn btn-saludpay">Ir a Salud Pay</button>
+      </div>
+
+      <div *ngIf="purchase.estado === 'PAGADO'" class="alert alert-success">
+        ¡Pago completado exitosamente! Los servicios han sido notificados (SHC, SAM).
+      </div>
+
+      <div *ngIf="purchase.estado === 'RECHAZADO' || purchase.estado === 'ERROR_SNS'" class="alert alert-danger">
+        La compra no pudo ser procesada. Estado final: {{ purchase.estado }}.
+      </div>
+      
+      <button (click)="viewPurchase(0)" class="btn-back">← Volver a Mis Compras</button>
+    </div>
+  </div>
+
+  <!-- 2. LISTADO DE COMPRAS DEL CLIENTE -->
+  <div *ngIf="!purchaseId">
+    <h2>Mis Compras</h2>
+    <p class="section-desc">Aquí puedes ver el historial y estado de todos tus planes adquiridos.</p>
+
+    <div *ngIf="loadingPurchases" class="loading-spinner">
+      Cargando historial de compras...
     </div>
 
-    <div *ngIf="purchase.estado === 'VALIDANDO_SNS'" class="alert alert-info">
-      Esperando validación de la Superintendencia Nacional de Salud...
+    <div *ngIf="!loadingPurchases && purchases.length === 0" class="empty-purchases">
+      <div class="icon">📦</div>
+      <h3>No tienes compras registradas</h3>
+      <p>Explora nuestro catálogo para adquirir un plan de salud premium.</p>
+      <a routerLink="/catalog" class="btn btn-primary">Ver Catálogo de Planes</a>
     </div>
 
-    <div *ngIf="purchase.estado === 'PENDIENTE_PAGO'" class="alert alert-warning">
-      SNS aprobó la compra. Pendiente de pago en Salud Pay.
-      <button (click)="goToSaludPay()" class="btn btn-saludpay">Ir a Salud Pay</button>
-    </div>
-
-    <div *ngIf="purchase.estado === 'PAGADO'" class="alert alert-success">
-      ¡Pago completado exitosamente! Los servicios han sido notificados (SHC, SAM).
-    </div>
-
-    <div *ngIf="purchase.estado === 'RECHAZADO' || purchase.estado === 'ERROR_SNS'" class="alert alert-danger">
-      La compra no pudo ser procesada. Estado final: {{ purchase.estado }}.
+    <div *ngIf="!loadingPurchases && purchases.length > 0" class="purchases-list">
+      <div *ngFor="let p of purchases" class="purchase-item-card">
+        <div class="purchase-item-header">
+          <div>
+            <span class="purchase-num">Compra #{{ p.id }}</span>
+            <span class="purchase-date">{{ p.createdAt | date:'mediumDate' }}</span>
+          </div>
+          <span class="badge" [ngClass]="p.estado">{{ p.estado }}</span>
+        </div>
+        <div class="purchase-item-plan">
+          <span class="plan-label">Plan:</span> <span class="plan-value">{{ getPlanNames(p.payload) }}</span>
+        </div>
+        <div class="purchase-item-body">
+          <span class="purchase-total">Total: ${{ p.total | number }}</span>
+          <div class="action-buttons">
+            <button (click)="viewPurchase(p.id)" class="btn-action view-btn">Ver Estado</button>
+            <button *ngIf="p.estado === 'PENDIENTE_PAGO'" (click)="goToSaludPaySpecific(p)" class="btn-action pay-btn">Pagar</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

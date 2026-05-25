@@ -18,4 +18,8 @@ export class PurchaseService {
   getPurchase(id: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
+
+  getPurchasesByCliente(clienteId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/cliente/${clienteId}`, { headers: this.getHeaders() });
+  }
 }

@@ -1,26 +1,9 @@
 spring:
   application:
     name: api-gateway
+  # Java configuration RouteConfig.class contains all required routes (including shc, sam, sns-mock, saludpay and catalog)
   cloud:
     gateway:
-      routes:
-        - id: auth-service
-          uri: http://auth-service:8081
-          predicates:
-            - Path=/auth/**
-        - id: catalog-service
-          uri: http://catalog-service:8082
-          predicates:
-            - Path=/catalog/**
-        - id: purchase-service
-          uri: http://purchase-service:8083
-          predicates:
-            - Path=/purchases/**
-        - id: saludpay-service
-          uri: http://saludpay:8086
-          predicates:
-            - Path=/payments/**
-      # Configuración opcional de loadbalancer (si usas discovery)
       loadbalancer:
         enabled: true
 

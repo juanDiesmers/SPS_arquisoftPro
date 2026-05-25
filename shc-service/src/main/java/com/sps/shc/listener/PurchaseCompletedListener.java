@@ -29,15 +29,28 @@ public class PurchaseCompletedListener {
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 
+        // Nombres legibles de los planes (ej: "Plan Básico, Plan Avanzado")
+        String nombresPlanes = event.getNombresPlanes() != null
+                ? String.join(", ", event.getNombresPlanes())
+                : planIds;
+
+        // Servicios médicos detallados (ej: "Consulta General, Laboratorio, Hospitalización")
+        String serviciosMedicos = event.getServiciosMedicos() != null
+                ? String.join(", ", event.getServiciosMedicos())
+                : "";
+
         ShcRecord record = new ShcRecord(
                 event.getCompraId(),
                 event.getClienteId(),
                 planIds,
+                nombresPlanes,
+                serviciosMedicos,
                 event.getTotal(),
                 event.getEstado(),
                 Instant.now()
         );
         repository.save(record);
-        log.info("SHC procesó compra {} con estado {}", event.getCompraId(), event.getEstado());
+        log.info("SHC registro historia clinica para compra {} | Planes: {} | Servicios: {}",
+                event.getCompraId(), nombresPlanes, serviciosMedicos);
     }
 }

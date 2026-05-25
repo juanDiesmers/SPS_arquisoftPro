@@ -17,6 +17,8 @@ public class RegisterRequest {
     @Size(min = 6, max = 40)
     private String password;
 
+    private String cedula;
+
     // Getters y Setters
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -24,4 +26,6 @@ public class RegisterRequest {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-}
+    public String getCedula() { return cedula; }
+    public void setCedula(String cedula) { this.cedula = cedula; }
+}
