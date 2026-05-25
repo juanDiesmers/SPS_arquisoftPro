@@ -19,13 +19,13 @@ public class RouteConfig {
                 // Catalog service - simple pass-through with rewrite
                 .route("catalog-service", r -> r
                         .path("/catalog/**")
-                        .filters(f -> f.rewritePath("/catalog/(?<segment>.*)", "/planes/${segment}"))
+                        .filters(f -> f.rewritePath("/catalog/(?<segment>.*)", "/${segment}"))
                         .uri("http://catalog-service:8082"))
 
                 // Purchase service - simple pass-through with rewrite
                 .route("purchase-service", r -> r
                         .path("/purchase/**")
-                        .filters(f -> f.rewritePath("/purchase/(?<segment>.*)", "/compras/${segment}"))
+                        .filters(f -> f.rewritePath("/purchase/(?<segment>.*)", "/${segment}"))
                         .uri("http://purchase-service:8083"))
 
                 // Payments service - simple pass-through with rewrite

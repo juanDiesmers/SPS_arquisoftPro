@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - sps-network
+      - sps-private-net
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -38,7 +38,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - sps-network
+      - sps-private-net
 
   api-gateway:
     build: ./gateway-service
@@ -61,7 +61,8 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - sps-network
+      - sps-public-net
+      - sps-private-net
 
   auth-service:
     build: ./auth-service
@@ -78,7 +79,7 @@ services:
     ports:
       - "8081:8081"
     networks:
-      - sps-network
+      - sps-private-net
 
   catalog-service:
     build: ./catalog-service
@@ -94,7 +95,7 @@ services:
     ports:
       - "8082:8082"
     networks:
-      - sps-network
+      - sps-private-net
 
   purchase-service:
     build: ./purchase-service
@@ -120,7 +121,7 @@ services:
     ports:
       - "8083:8083"
     networks:
-      - sps-network
+      - sps-private-net
 
   sns-mock:
     build: ./sns-mock
@@ -138,7 +139,7 @@ services:
     ports:
       - "8085:8085"
     networks:
-      - sps-network
+      - sps-private-net
 
   saludpay:
     build: ./saludpay-dotnet
@@ -159,7 +160,7 @@ services:
     ports:
       - "8086:8086"
     networks:
-      - sps-network
+      - sps-private-net
 
   shc-service:
     build: ./shc-service
@@ -180,7 +181,7 @@ services:
     ports:
       - "8087:8087"
     networks:
-      - sps-network
+      - sps-private-net
 
   sam-service:
     build: ./sam-service
@@ -201,7 +202,7 @@ services:
     ports:
       - "8088:8088"
     networks:
-      - sps-network
+      - sps-private-net
 
   angular-frontend:
     build: ./angular-frontend
@@ -216,11 +217,13 @@ services:
     ports:
       - "4200:80"
     networks:
-      - sps-network
+      - sps-public-net
 
 volumes:
   mysql-data:
 
 networks:
-  sps-network:
+  sps-public-net:
+    driver: bridge
+  sps-private-net:
     driver: bridge
