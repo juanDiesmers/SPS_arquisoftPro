@@ -14,6 +14,9 @@ public class PurchaseEntity {
     @Column(name = "cliente_id", nullable = false)
     private Long clienteId;
 
+    @Column(name = "cedula", length = 50)
+    private String cedula;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PurchaseStatus estado;
@@ -45,6 +48,11 @@ public class PurchaseEntity {
         this.updatedAt = Instant.now();
     }
 
+    public PurchaseEntity(Long clienteId, String cedula, PurchaseStatus estado, BigDecimal total, String payload) {
+        this(clienteId, estado, total, payload);
+        this.cedula = cedula;
+    }
+
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = Instant.now();
@@ -64,6 +72,14 @@ public class PurchaseEntity {
 
     public void setClienteId(Long clienteId) {
         this.clienteId = clienteId;
+    }
+
+    public String getCedula() {
+        return cedula;
+    }
+
+    public void setCedula(String cedula) {
+        this.cedula = cedula;
     }
 
     public PurchaseStatus getEstado() {

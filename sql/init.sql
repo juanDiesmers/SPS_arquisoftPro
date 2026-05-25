@@ -58,11 +58,50 @@ CREATE TABLE IF NOT EXISTS planes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS servicios_medicos (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    precio DECIMAL(12,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS plan_servicios (
+    plan_id BIGINT NOT NULL,
+    servicio_id BIGINT NOT NULL,
+    PRIMARY KEY (plan_id, servicio_id),
+    FOREIGN KEY (plan_id) REFERENCES planes(id) ON DELETE CASCADE,
+    FOREIGN KEY (servicio_id) REFERENCES servicios_medicos(id) ON DELETE CASCADE
+);
+
+-- Seed initial medical services
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (1, 'Consulta General', 50000.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (2, 'Exámenes de Laboratorio', 30000.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (3, 'Hospitalización Básica', 49900.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (4, 'Consulta con Especialista', 100000.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (5, 'Exámenes Avanzados', 80000.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (6, 'Hospitalización Especializada', 99900.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (7, 'Cobertura Médica Familiar', 399900.00);
+
+-- Seed initial plans
+INSERT IGNORE INTO planes (id, nombre, descripcion, precio, convenio, activo) VALUES (1, 'Plan Básico', 'Cobertura de consulta general y laboratorio.', 129900.00, 'Convenio Nacional', 1);
+INSERT IGNORE INTO planes (id, nombre, descripcion, precio, convenio, activo) VALUES (2, 'Plan Avanzado', 'Cobertura de especialistas y exámenes avanzados.', 279900.00, 'Convenio Premium', 1);
+INSERT IGNORE INTO planes (id, nombre, descripcion, precio, convenio, activo) VALUES (3, 'Plan Familiar', 'Cobertura para hasta 4 miembros de la familia.', 399900.00, 'Convenio Familiar', 1);
+
+-- Link plans and services
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (1, 1);
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (1, 2);
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (1, 3);
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (2, 4);
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (2, 5);
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (2, 6);
+INSERT IGNORE INTO plan_servicios (plan_id, servicio_id) VALUES (3, 7);
+
 USE sps_purchase_db;
 
 CREATE TABLE IF NOT EXISTS compras (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     cliente_id BIGINT NOT NULL,
+    cedula VARCHAR(50),
     estado VARCHAR(50) NOT NULL,
     total DECIMAL(12,2) NOT NULL,
     payload JSON,

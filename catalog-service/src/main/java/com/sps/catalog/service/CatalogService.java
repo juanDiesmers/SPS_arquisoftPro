@@ -42,6 +42,17 @@ public class CatalogService {
     }
 
     private PlanResponse toDto(PlanEntity entity) {
-        return new PlanResponse(entity.getId(), entity.getNombre(), entity.getDescripcion(), entity.getPrecio(), entity.getConvenio(), entity.isActivo());
+        List<com.sps.catalog.dto.ServicioMedicoResponse> serviciosDto = entity.getServicios().stream()
+                .map(s -> new com.sps.catalog.dto.ServicioMedicoResponse(s.getId(), s.getNombre(), s.getPrecio()))
+                .collect(Collectors.toList());
+        return new PlanResponse(
+                entity.getId(),
+                entity.getNombre(),
+                entity.getDescripcion(),
+                entity.getPrecio(),
+                entity.getConvenio(),
+                entity.isActivo(),
+                serviciosDto
+        );
     }
 }

@@ -1,18 +1,139 @@
-# Documentación SPS Microsoftware
+# SPS — Sistema de Planes de Salud
 
-## Objetivo
+Proyecto Arquisoft · Universidad Javeriana  
+Arquitectura de Microservicios: Java EE (Spring Boot) + .NET
 
-Esta carpeta debe contener la documentación de arquitectura, despliegue y diagramas para el sistema SPS.
+---
 
-## Estructura inicial
+## Servicios y Puertos
 
-- `docs/arquitectura/` — diagramas lógicos y de componentes.
-- `docs/diagramas/` — diagramas de secuencia y flujo.
-- `docs/despliegue/` — instrucciones y notas de despliegue.
+| Servicio               | Tecnología        | Puerto | Red            |
+|------------------------|-------------------|--------|----------------|
+| Angular Frontend       | Nginx + Angular   | 4200   | pública        |
+| API Gateway            | Spring Cloud GW   | 8080   | pública        |
+| Auth Service           | Spring Boot       | 8081   | privada        |
+| Catalog Service        | Spring Boot       | 8082   | privada        |
+| Purchase Service (×2)  | Spring Boot       | 8083   | privada        |
+| SNS Mock               | Spring Boot       | 8085   | privada        |
+| SaludPay (.NET)        | ASP.NET Core      | 8086   | privada        |
+| SHC Service            | Spring Boot       | 8087   | privada        |
+| SAM Service            | Spring Boot       | 8088   | privada        |
+| MySQL                  | MySQL 8.0         | 3306   | privada        |
+| RabbitMQ               | RabbitMQ 3        | 5672   | privada        |
+| RabbitMQ Management    | -                 | 15672  | privada        |
 
-## Próximos pasos
+---
 
-1. Completar los controladores y servicios de cada microservicio.
-2. Desarrollar la seguridad JWT y la validación en el gateway.
-3. Implementar la mensajería RabbitMQ entre `purchase-service`, `shc-service` y `sam-service`.
-4. Agregar casos de prueba básicos e integración de salud para cada componente.
+## Credenciales de Prueba
+
+### SPS (Spring Boot Auth)
+- Usuario: `admin` / Contraseña: `admin123`
+
+### SaludPay (.NET)
+- Cédula: `1001` / Contraseña: `password123`
+- Cédula: `1002` / Contraseña: `password123`
+
+---
+
+## Flujo Principal de Compra
+
+```
+1. Cliente hace login → GET /auth/login → JWT Token
+2. Consulta catálogo → GET /catalog/planes → Lista de planes con servicios médicos
+3. Inicia compra → POST /purchase/compras { clienteId, cedula, planIds, total }
+4. [SNS valida asíncronamente] → webhook POST /purchase/compras/webhook-sns
+5. Si APROBADO → Purchase envía pago pendiente a SaludPay
+6. Usuario se autentica en SaludPay (cédula + password) → JWT
+7. Consulta pagos → GET /api/pagos/mis-pagos?cedula=1001
+8. Ejecuta pago → POST /api/pagos/{id}/pagar
+9. SaludPay notifica a Purchase → POST /purchase/compras/webhook-pago { compraId, estado }
+10. Purchase publica evento RabbitMQ → SHC y SAM registran historia clínica y agenda
+11. Email de confirmación al cliente (simulado en logs)
+```
+
+---
+
+## Catálogo de Planes
+
+| Plan          | Servicios Incluidos                                          | Precio      |
+|---------------|--------------------------------------------------------------|-------------|
+| Plan Básico   | Consulta General, Exámenes Lab, Hospitalización Básica       | $129.900    |
+| Plan Avanzado | Consulta Especialista, Exámenes Avanzados, Hosp. Especializada | $279.900  |
+| Plan Familiar | Cobertura Médica Familiar (hasta 4 miembros)                 | $399.900    |
+
+---
+
+## Endpoints Clave
+
+### Gateway → Auth
+```
+POST http://localhost:8080/auth/login
+{ "username": "admin", "password": "admin123" }
+```
+
+### Gateway → Catalog
+```
+GET http://localhost:8080/catalog/planes
+Authorization: Bearer <token>
+```
+
+### Gateway → Purchase
+```
+POST http://localhost:8080/purchase/compras
+{ "clienteId": 1, "cedula": "1001", "planIds": [1], "total": 129900 }
+
+GET  http://localhost:8080/purchase/compras/{id}
+POST http://localhost:8080/purchase/compras/webhook-sns
+POST http://localhost:8080/purchase/compras/webhook-pago
+```
+
+### SaludPay (.NET)
+```
+POST http://localhost:8086/api/auth/login
+{ "cedula": "1001", "password": "password123" }
+
+GET  http://localhost:8086/api/pagos/mis-pagos?cedula=1001
+POST http://localhost:8086/api/pagos/{id}/pagar
+```
+
+---
+
+## Despliegue
+
+```bash
+# Levantar todo el sistema
+docker compose up -d
+
+# Reconstruir un servicio
+docker compose build <service-name>
+docker compose up -d --no-deps <service-name>
+
+# Ver logs
+docker logs <container-name> -f
+
+# Estado
+docker ps
+```
+
+---
+
+## Separación de Redes
+
+- **sps-public-net**: Frontend Angular + API Gateway
+- **sps-private-net**: Todos los microservicios, DBs y mensajería
+
+El frontend solo puede hablar con el Gateway. Ningún servicio interno es accesible directamente desde el exterior.
+
+---
+
+## Bases de Datos Independientes
+
+| Servicio         | Base de Datos       |
+|------------------|---------------------|
+| Auth Service     | `sps_auth_db`       |
+| Catalog Service  | `sps_catalog_db`    |
+| Purchase Service | `sps_purchase_db`   |
+| SaludPay         | `saludpay_db`       |
+| SHC Service      | `shc_db`            |
+| SAM Service      | `sam_db`            |
+| SNS Mock         | `sns_db`            |

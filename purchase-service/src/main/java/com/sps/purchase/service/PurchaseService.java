@@ -58,7 +58,14 @@ public class PurchaseService {
 
     @Transactional
     public PurchaseResponse createPurchase(PurchaseRequest request) {
-        PurchaseEntity purchase = new PurchaseEntity(request.getClienteId(), PurchaseStatus.VALIDANDO_SNS, request.getTotal(), serializePayload(request));
+        String cedula = request.getCedula() != null ? request.getCedula() : String.valueOf(request.getClienteId());
+        PurchaseEntity purchase = new PurchaseEntity(
+                request.getClienteId(),
+                cedula,
+                PurchaseStatus.VALIDANDO_SNS,
+                request.getTotal(),
+                serializePayload(request)
+        );
         purchase = purchaseRepository.save(purchase);
         invokeSnsValidationAsync(purchase);
         return toResponse(purchase);
@@ -138,6 +145,7 @@ public class PurchaseService {
     @Retryable(value = Exception.class, maxAttempts = 3)
     public void notifySaludPay(PurchaseEntity purchase) {
         log.info("Notificando Salud Pay para compra {}", purchase.getId());
+        String cedula = purchase.getCedula() != null ? purchase.getCedula() : String.valueOf(purchase.getClienteId());
         webClient.post()
                 .uri(saludPayUrl + "/api/pagos/pendientes")
                 .bodyValue(Map.of(
@@ -145,7 +153,7 @@ public class PurchaseService {
                         "clienteId", purchase.getClienteId(),
                         "total", purchase.getTotal(),
                         "estado", purchase.getEstado().name(),
-                        "cedula", String.valueOf(purchase.getClienteId())
+                        "cedula", cedula
                 ))
                 .retrieve()
                 .bodyToMono(Void.class)

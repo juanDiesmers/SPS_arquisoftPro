@@ -9,6 +9,9 @@ public class PurchaseRequest {
     @NotNull(message = "clienteId is required")
     private Long clienteId;
 
+    /** Cédula del cliente para identificarlo en SaludPay. */
+    private String cedula;
+
     @NotEmpty(message = "planIds is required")
     private List<Long> planIds;
 
@@ -21,6 +24,14 @@ public class PurchaseRequest {
 
     public void setClienteId(Long clienteId) {
         this.clienteId = clienteId;
+    }
+
+    public String getCedula() {
+        return cedula;
+    }
+
+    public void setCedula(String cedula) {
+        this.cedula = cedula;
     }
 
     public List<Long> getPlanIds() {
