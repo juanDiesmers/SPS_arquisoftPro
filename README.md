@@ -65,16 +65,8 @@ A continuación, se documentan los comandos de PowerShell utilizados para certif
 Este servicio se ejecuta en el puerto **8081**. Este comando realiza un POST al endpoint de login para obtener un token Bearer.
 
 ```powershell
-# Obtener Token JWT
-$body = @{
-    username = "admin"
-    password = "password"
-} | ConvertTo-Json
-
-$response = Invoke-RestMethod -Uri "http://localhost:8081/api/auth/login" -Method POST -ContentType "application/json" -Body $body
-
-$token = $response.token
-Write-Host "Token generado: $token"
+$body = @{username="admin"; password="admin123"} | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:8081/auth/login" -Method POST -ContentType "application/json" -Body $body
 ```
 
 ### 2. Test del `catalog-service` (Creación y Consulta de Planes)

@@ -151,6 +151,7 @@ services:
         condition: service_started
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0:8086
       DB_URL: Server=mysql;Database=${SALUDPAY_DB_SCHEMA};User=${MYSQL_USER};Password=${MYSQL_PASSWORD};
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}

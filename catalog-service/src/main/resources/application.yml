@@ -13,6 +13,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,mappings
 application:
   name: sps-catalog-service
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.boot.actuate: DEBUG
