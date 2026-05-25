@@ -44,5 +44,43 @@ namespace SaludPay.Api.Controllers
             }
             return Ok(payment);
         }
+
+        [HttpGet("mis-pagos")]
+        public async Task<IActionResult> GetPaymentsByCedula([FromQuery] string cedula)
+        {
+            if (string.IsNullOrEmpty(cedula))
+            {
+                return BadRequest("La cédula es requerida.");
+            }
+            var payments = await _pagoService.GetPaymentsByCedulaAsync(cedula);
+            return Ok(payments);
+        }
+
+        [HttpPost("{id:int}/pagar")]
+        public async Task<IActionResult> ExecutePayment(int id)
+        {
+            var success = await _pagoService.ExecutePaymentAsync(id);
+            if (!success)
+            {
+                return NotFound("Pago pendiente no encontrado.");
+            }
+            return Ok(new { message = "Pago realizado exitosamente." });
+        }
+
+        [HttpPost("/api/pagar")]
+        public async Task<IActionResult> ExecuteLegacyPayment([FromBody] LegacyPagarRequest request)
+        {
+            var success = await _pagoService.ExecutePaymentByCompraIdAsync(request.CompraId);
+            if (!success)
+            {
+                return NotFound("Pago pendiente no encontrado o ya procesado para esta compra.");
+            }
+            return Ok(new { message = "Pago realizado exitosamente (Legacy)." });
+        }
+    }
+
+    public class LegacyPagarRequest
+    {
+        public long CompraId { get; set; }
     }
 }

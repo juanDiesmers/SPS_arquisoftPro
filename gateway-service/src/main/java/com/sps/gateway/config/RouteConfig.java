@@ -34,6 +34,12 @@ public class RouteConfig {
                         .filters(f -> f.rewritePath("/payments/(?<segment>.*)", "/api/${segment}"))
                         .uri("http://saludpay:8086"))
 
+                // SaludPay service - compatibility route
+                .route("saludpay-service-route", r -> r
+                        .path("/saludpay/**")
+                        .filters(f -> f.rewritePath("/saludpay/(?<segment>.*)", "/api/${segment}"))
+                        .uri("http://saludpay:8086"))
+
                 // SNS mock - simple pass-through
                 .route("sns-mock-service", r -> r
                         .path("/sns/**")

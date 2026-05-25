@@ -79,9 +79,19 @@ CREATE TABLE IF NOT EXISTS pending_payments (
     ClienteId BIGINT NOT NULL,
     Total DECIMAL(12,2) NOT NULL,
     Estado VARCHAR(50) NOT NULL,
+    Cedula VARCHAR(50) NOT NULL DEFAULT '1001',
     CreatedAt DATETIME(6),
     UpdatedAt DATETIME(6)
 );
+
+CREATE TABLE IF NOT EXISTS saludpay_users (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Cedula VARCHAR(50) NOT NULL UNIQUE,
+    Password VARCHAR(255) NOT NULL
+);
+
+INSERT IGNORE INTO saludpay_users (Cedula, Password) VALUES ('1001', 'password123');
+INSERT IGNORE INTO saludpay_users (Cedula, Password) VALUES ('1002', 'password123');
 
 USE shc_db;
 

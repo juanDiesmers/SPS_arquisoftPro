@@ -119,7 +119,9 @@ services:
       SALUDPAY_SERVICE_URL: http://saludpay:8086
       JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "8083:8083"
+      - "8083"
+    deploy:
+      replicas: 2
     networks:
       - sps-private-net
 

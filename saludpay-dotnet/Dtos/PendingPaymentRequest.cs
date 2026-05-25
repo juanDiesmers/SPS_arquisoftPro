@@ -15,5 +15,7 @@ namespace SaludPay.Api.Dtos
 
         [Required]
         public string Estado { get; set; } = string.Empty;
+
+        public string Cedula { get; set; } = string.Empty;
     }
 }

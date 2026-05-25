@@ -61,6 +61,7 @@ public class SnsMockService {
         String mode = responseMode == null ? "APROBADO" : responseMode.trim().toUpperCase();
         return switch (mode) {
             case "RECHAZADO" -> "RECHAZADO";
+            case "ENPROCESO" -> "ENPROCESO";
             case "ALEATORIO" -> RANDOM.nextBoolean() ? "APROBADO" : "RECHAZADO";
             default -> "APROBADO";
         };

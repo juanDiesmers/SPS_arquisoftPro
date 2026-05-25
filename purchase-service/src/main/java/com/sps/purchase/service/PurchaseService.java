@@ -17,6 +17,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -36,6 +37,7 @@ public class PurchaseService {
     private final RabbitTemplate rabbitTemplate;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
     private final String snsServiceUrl;
     private final String saludPayUrl;
 
@@ -43,11 +45,13 @@ public class PurchaseService {
                            RabbitTemplate rabbitTemplate,
                            WebClient webClient,
                            ObjectMapper objectMapper,
+                           NotificationService notificationService,
                            org.springframework.core.env.Environment env) {
         this.purchaseRepository = purchaseRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.webClient = webClient;
         this.objectMapper = objectMapper;
+        this.notificationService = notificationService;
         this.snsServiceUrl = env.getProperty("sns.url", "http://localhost:8085");
         this.saludPayUrl = env.getProperty("saludpay.url", "http://localhost:8086");
     }
@@ -76,8 +80,11 @@ public class PurchaseService {
         if ("APROBADO".equalsIgnoreCase(resultado)) {
             purchase.setEstado(PurchaseStatus.PENDIENTE_PAGO);
             notifySaludPay(purchase);
+            notificationService.sendPaymentNotification(purchase.getClienteId(), purchase.getId(), purchase.getTotal());
         } else if ("RECHAZADO".equalsIgnoreCase(resultado)) {
             purchase.setEstado(PurchaseStatus.RECHAZADO);
+        } else if ("ENPROCESO".equalsIgnoreCase(resultado)) {
+            purchase.setEstado(PurchaseStatus.VALIDANDO_SNS);
         } else {
             purchase.setEstado(PurchaseStatus.ERROR_SNS);
         }
@@ -96,6 +103,7 @@ public class PurchaseService {
             purchase.setEstado(PurchaseStatus.PAGADO);
             purchase = purchaseRepository.save(purchase);
             publishPurchaseCompleted(purchase);
+            notificationService.sendConfirmationNotification(purchase.getClienteId(), purchase.getId(), purchase.getTotal());
             return toResponse(purchase);
         }
         purchase = purchaseRepository.save(purchase);
@@ -136,7 +144,8 @@ public class PurchaseService {
                         "compraId", purchase.getId(),
                         "clienteId", purchase.getClienteId(),
                         "total", purchase.getTotal(),
-                        "estado", purchase.getEstado().name()
+                        "estado", purchase.getEstado().name(),
+                        "cedula", String.valueOf(purchase.getClienteId())
                 ))
                 .retrieve()
                 .bodyToMono(Void.class)
@@ -202,6 +211,16 @@ public class PurchaseService {
         } catch (JsonProcessingException e) {
             log.warn("No se pudieron extraer planIds del payload", e);
             return List.of();
+        }
+    }
+
+    @Scheduled(fixedDelay = 20000)
+    public void retrySnsValidation() {
+        log.info("Buscando compras en estado VALIDANDO_SNS para reintentar validacion...");
+        List<PurchaseEntity> pendingPurchases = purchaseRepository.findByEstado(PurchaseStatus.VALIDANDO_SNS);
+        for (PurchaseEntity purchase : pendingPurchases) {
+            log.info("Reintentando validacion SNS para compra {}", purchase.getId());
+            invokeSnsValidationAsync(purchase);
         }
     }
 }

@@ -15,7 +15,7 @@ var connectionString = builder.Configuration["DB_URL"] ??
     "Server=localhost;Database=saludpay_db;User=root;Password=root;";
 
 builder.Services.AddDbContext<SaludPayDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, new MySqlServerVersion(new System.Version(8, 0, 30))));
 
 builder.Services.AddHttpClient("purchaseService", client =>
 {
@@ -42,6 +42,52 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<SaludPayDbContext>();
     dbContext.Database.EnsureCreated();
+
+    // Resilient schema update: Add Cedula column to pending_payments
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw("ALTER TABLE pending_payments ADD COLUMN Cedula VARCHAR(50) NOT NULL DEFAULT '1001';");
+        Console.WriteLine("Columna Cedula agregada a pending_payments.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Nota: Columna Cedula ya existe o no pudo ser agregada: {ex.Message}");
+    }
+
+    // Resilient schema update: Create saludpay_users table
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw(
+            @"CREATE TABLE IF NOT EXISTS saludpay_users (
+                Id INT AUTO_INCREMENT PRIMARY KEY,
+                Cedula VARCHAR(50) NOT NULL,
+                Password VARCHAR(255) NOT NULL,
+                UNIQUE KEY UQ_SaludPayUsers_Cedula (Cedula)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+        );
+        Console.WriteLine("Tabla saludpay_users asegurada.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al asegurar la tabla saludpay_users: {ex.Message}");
+    }
+
+    // Seed test users
+    try
+    {
+        var hasUsers = dbContext.Users.Any();
+        if (!hasUsers)
+        {
+            dbContext.Users.Add(new SaludPay.Api.Models.SaludPayUser { Cedula = "1001", Password = "password123" });
+            dbContext.Users.Add(new SaludPay.Api.Models.SaludPayUser { Cedula = "1002", Password = "password123" });
+            dbContext.SaveChanges();
+            Console.WriteLine("Usuarios de prueba sembrados en DB.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al sembrar usuarios: {ex.Message}");
+    }
 }
 
 app.Run();
