@@ -7,7 +7,6 @@ import com.sps.purchase.dto.PurchaseCompletedEvent;
 import com.sps.purchase.dto.PurchaseRequest;
 import com.sps.purchase.dto.PurchaseResponse;
 import com.sps.purchase.dto.WebhookPagoRequest;
-import com.sps.purchase.dto.WebhookSnsRequest;
 import com.sps.purchase.entity.PurchaseEntity;
 import com.sps.purchase.entity.PurchaseStatus;
 import com.sps.purchase.repository.PurchaseRepository;
@@ -115,27 +114,6 @@ public class PurchaseService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    @Transactional
-    public PurchaseResponse handleWebhookSns(WebhookSnsRequest request) {
-        PurchaseEntity purchase = purchaseRepository.findById(request.getCompraId())
-                .orElseThrow(() -> new IllegalArgumentException("Compra no encontrada: " + request.getCompraId()));
-
-        String resultado = request.getResultado();
-        purchase.setSnsResult(resultado);
-        if ("APROBADO".equalsIgnoreCase(resultado)) {
-            purchase.setEstado(PurchaseStatus.PENDIENTE_PAGO);
-            notifySaludPay(purchase);
-            notificationService.sendPaymentNotification(purchase.getClienteId(), purchase.getId(), purchase.getTotal());
-        } else if ("RECHAZADO".equalsIgnoreCase(resultado)) {
-            purchase.setEstado(PurchaseStatus.RECHAZADO);
-        } else if ("ENPROCESO".equalsIgnoreCase(resultado)) {
-            purchase.setEstado(PurchaseStatus.VALIDANDO_SNS);
-        } else {
-            purchase.setEstado(PurchaseStatus.ERROR_SNS);
-        }
-        purchase = purchaseRepository.save(purchase);
-        return toResponse(purchase);
-    }
 
     @Transactional
     public PurchaseResponse handleWebhookPago(WebhookPagoRequest request) {

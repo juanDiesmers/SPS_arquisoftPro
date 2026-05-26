@@ -3,7 +3,6 @@ package com.sps.purchase.controller;
 import com.sps.purchase.dto.PurchaseRequest;
 import com.sps.purchase.dto.PurchaseResponse;
 import com.sps.purchase.dto.WebhookPagoRequest;
-import com.sps.purchase.dto.WebhookSnsRequest;
 import com.sps.purchase.service.PurchaseService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,10 +34,6 @@ public class PurchaseController {
         return ResponseEntity.ok(purchaseService.getPurchasesByCliente(clienteId));
     }
 
-    @PostMapping("/webhook-sns")
-    public ResponseEntity<PurchaseResponse> handleSnsWebhook(@Valid @RequestBody WebhookSnsRequest request) {
-        return ResponseEntity.ok(purchaseService.handleWebhookSns(request));
-    }
 
     @PostMapping("/webhook-pago")
     public ResponseEntity<PurchaseResponse> handlePagoWebhook(@Valid @RequestBody WebhookPagoRequest request) {
