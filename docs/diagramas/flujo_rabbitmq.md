@@ -14,7 +14,7 @@ sequenceDiagram
     Ex-->>Q_SAM: routing: purchase.completed.sam
     
     Q_SHC->>SHC: consume()
-    SHC->>SHC: Crea Historia Clínica
+    SHC->>SHC: Crea Historia Clinica
     
     Q_SAM->>SAM: consume()
     SAM->>SAM: Agendar cita / servicio

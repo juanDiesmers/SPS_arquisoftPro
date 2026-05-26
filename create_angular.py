@@ -69,7 +69,7 @@ export class AppRoutingModule { }
   <nav class="navbar" *ngIf="isLoggedIn()">
     <div class="navbar-brand">SPS - Salud Pay System</div>
     <div class="navbar-menu">
-      <a routerLink="/catalog">Catálogo</a>
+      <a routerLink="/catalog">Catalogo</a>
       <a routerLink="/cart">Carrito</a>
       <a routerLink="/status">Mis Compras</a>
       <a (click)="logout()">Salir</a>
@@ -194,7 +194,7 @@ export class LoginComponent {
         localStorage.setItem('userId', res.userId);
         this.router.navigate(['/catalog']);
       },
-      error: (err) => this.error = 'Credenciales inválidas'
+      error: (err) => this.error = 'Credenciales invalidas'
     });
   }
 }
@@ -257,14 +257,14 @@ export class CatalogComponent implements OnInit {
       localStorage.setItem('cart', JSON.stringify(cart));
       alert('Plan agregado al carrito');
     } else {
-      alert('El plan ya está en el carrito');
+      alert('El plan ya esta en el carrito');
     }
   }
 }
 """,
 
     "catalog/catalog.component.html": """<div class="catalog-header">
-  <h2>Catálogo de Planes de Salud</h2>
+  <h2>Catalogo de Planes de Salud</h2>
 </div>
 <div class="planes-grid">
   <div class="plan-card" *ngFor="let plan of planes">
@@ -329,7 +329,7 @@ export class CartComponent implements OnInit {
   <h2>Tu Carrito de Compras</h2>
   
   <div *ngIf="cart.length === 0" class="empty-cart">
-    Tu carrito está vacío. <a routerLink="/catalog">Ir al catálogo</a>
+    Tu carrito esta vacio. <a routerLink="/catalog">Ir al catalogo</a>
   </div>
 
   <div *ngIf="cart.length > 0">
@@ -338,7 +338,7 @@ export class CartComponent implements OnInit {
         <tr>
           <th>Plan</th>
           <th>Precio</th>
-          <th>Acción</th>
+          <th>Accion</th>
         </tr>
       </thead>
       <tbody>
@@ -527,11 +527,11 @@ export class StatusComponent implements OnInit {
     </div>
 
     <div *ngIf="purchase.estado === 'VALIDANDO_SNS'" class="alert alert-info">
-      Esperando validación de la Superintendencia Nacional de Salud...
+      Esperando validacion de la Superintendencia Nacional de Salud...
     </div>
 
     <div *ngIf="purchase.estado === 'PENDIENTE_PAGO'" class="alert alert-warning">
-      SNS aprobó la compra. Pendiente de pago en Salud Pay.
+      SNS aprobo la compra. Pendiente de pago en Salud Pay.
       <button (click)="goToSaludPay()" class="btn btn-saludpay">Ir a Salud Pay</button>
     </div>
 
@@ -620,7 +620,7 @@ export class SaludpayComponent implements OnInit {
   <div class="sp-card">
     <div class="sp-logo">Salud Pay</div>
     <div *ngIf="!success">
-      <p class="sp-text">Estás a un paso de confirmar tu compra de salud.</p>
+      <p class="sp-text">Estas a un paso de confirmar tu compra de salud.</p>
       <div class="sp-amount">${{ total }}</div>
       <button (click)="pagar()" class="btn btn-pay" [disabled]="loading">
         {{ loading ? 'Procesando pago...' : 'Pagar Ahora' }}

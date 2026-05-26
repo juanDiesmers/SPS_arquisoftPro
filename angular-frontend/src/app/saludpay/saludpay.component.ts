@@ -20,6 +20,7 @@ export class SaludpayComponent implements OnInit {
   total: number = 0;
   pagosPendientes: any[] = [];
   pagosLoading: boolean = false;
+  pendingPurchaseIdFromUrl?: number;
 
   // Paso 3: Ejecutar pago
   pagoLoading: boolean = false;
@@ -36,11 +37,14 @@ export class SaludpayComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      this.compraId = Number(params['id'] || 0);
-      this.total    = Number(params['total'] || 0);
+      const idParam = params['id'];
+      if (idParam) {
+        const id = Number(idParam);
+        if (!isNaN(id)) {
+          this.pendingPurchaseIdFromUrl = id;
+        }
+      }
     });
-    // Pre-llenar cedula desde localStorage si esta disponible
-    this.cedula = localStorage.getItem('cedula') || '';
   }
 
   /** Paso 1 — Autenticarse en SaludPay con cedula */
@@ -86,7 +90,7 @@ export class SaludpayComponent implements OnInit {
   }
 
   /** Paso 3 — Ejecutar el pago */
-  ejecutarPago(pagoId: number) {
+  ejecutarPago(pagoId: number, targetCompraId: number) {
     this.pagoLoading = true;
     this.pagoError = '';
     const headers = new HttpHeaders({
@@ -100,7 +104,7 @@ export class SaludpayComponent implements OnInit {
         this.success = true;
         this.step = 3;
         setTimeout(() => {
-          this.router.navigate(['/status'], { queryParams: { id: this.compraId } });
+          this.router.navigate(['/status'], { queryParams: { id: targetCompraId } });
         }, 3000);
       },
       error: () => {

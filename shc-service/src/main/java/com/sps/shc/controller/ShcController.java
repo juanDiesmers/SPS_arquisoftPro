@@ -17,19 +17,19 @@ public class ShcController {
         this.repository = repository;
     }
 
-    /** Lista todas las historias clínicas */
+    /** Lista todas las historias clinicas */
     @GetMapping("/historias")
     public ResponseEntity<List<ShcRecord>> getAll() {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    /** Obtiene la historia clínica de un cliente por su ID */
+    /** Obtiene la historia clinica de un cliente por su ID */
     @GetMapping("/historias/cliente/{clienteId}")
     public ResponseEntity<List<ShcRecord>> getByCliente(@PathVariable Long clienteId) {
         return ResponseEntity.ok(repository.findByClienteId(clienteId));
     }
 
-    /** Obtiene la historia clínica de una compra específica */
+    /** Obtiene la historia clinica de una compra especifica */
     @GetMapping("/historias/compra/{compraId}")
     public ResponseEntity<List<ShcRecord>> getByCompra(@PathVariable Long compraId) {
         return ResponseEntity.ok(repository.findByCompraId(compraId));

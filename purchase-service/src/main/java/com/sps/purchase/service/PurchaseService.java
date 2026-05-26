@@ -43,11 +43,11 @@ public class PurchaseService {
     private final String catalogServiceUrl;
 
     public PurchaseService(PurchaseRepository purchaseRepository,
-                           RabbitTemplate rabbitTemplate,
-                           WebClient webClient,
-                           ObjectMapper objectMapper,
-                           NotificationService notificationService,
-                           org.springframework.core.env.Environment env) {
+            RabbitTemplate rabbitTemplate,
+            WebClient webClient,
+            ObjectMapper objectMapper,
+            NotificationService notificationService,
+            org.springframework.core.env.Environment env) {
         this.purchaseRepository = purchaseRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.webClient = webClient;
@@ -61,8 +61,10 @@ public class PurchaseService {
     @Transactional
     public PurchaseResponse createPurchase(PurchaseRequest request) {
         String cedula = request.getCedula() != null ? request.getCedula() : String.valueOf(request.getClienteId());
-        // REGLA DE NEGOCIO: el total siempre se calcula en el backend consultando el catálogo.
-        // No se acepta el total que viene del cliente para evitar manipulación de precios.
+        // REGLA DE NEGOCIO: el total siempre se calcula en el backend consultando el
+        // catalogo.
+        // No se acepta el total que viene del cliente para evitar manipulacion de
+        // precios.
         BigDecimal totalCalculado = calculateTotalFromCatalog(request.getPlanIds());
         log.info("Total calculado en backend para planIds {}: ${}", request.getPlanIds(), totalCalculado);
         PurchaseEntity purchase = new PurchaseEntity(
@@ -70,8 +72,7 @@ public class PurchaseService {
                 cedula,
                 PurchaseStatus.VALIDANDO_SNS,
                 totalCalculado,
-                serializePayload(request, totalCalculado)
-        );
+                serializePayload(request, totalCalculado));
         purchase = purchaseRepository.save(purchase);
         invokeSnsValidationAsync(purchase);
         return toResponse(purchase);
@@ -79,7 +80,8 @@ public class PurchaseService {
 
     /**
      * Consulta el catalog-service para obtener el precio real de cada plan
-     * y retorna la suma total. Cumple la restricción: "lógica de negocio en el backend".
+     * y retorna la suma total. Cumple la restriccion: "logica de negocio en el
+     * backend".
      */
     private BigDecimal calculateTotalFromCatalog(List<Long> planIds) {
         BigDecimal total = BigDecimal.ZERO;
@@ -95,7 +97,7 @@ public class PurchaseService {
                 }
             } catch (Exception e) {
                 log.error("Error al consultar precio del plan {} en catalog-service: {}", planId, e.getMessage());
-                throw new RuntimeException("No se pudo obtener el precio del plan " + planId + " desde el catálogo.");
+                throw new RuntimeException("No se pudo obtener el precio del plan " + planId + " desde el catalogo.");
             }
         }
         return total;
@@ -114,7 +116,6 @@ public class PurchaseService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-
     @Transactional
     public PurchaseResponse handleWebhookPago(WebhookPagoRequest request) {
         PurchaseEntity purchase = purchaseRepository.findById(request.getCompraId())
@@ -126,7 +127,8 @@ public class PurchaseService {
             purchase.setEstado(PurchaseStatus.PAGADO);
             purchase = purchaseRepository.save(purchase);
             publishPurchaseCompleted(purchase);
-            notificationService.sendConfirmationNotification(purchase.getClienteId(), purchase.getId(), purchase.getTotal());
+            notificationService.sendConfirmationNotification(purchase.getClienteId(), purchase.getId(),
+                    purchase.getTotal());
             return toResponse(purchase);
         }
         purchase = purchaseRepository.save(purchase);
@@ -138,8 +140,7 @@ public class PurchaseService {
             return objectMapper.writeValueAsString(Map.of(
                     "clienteId", request.getClienteId(),
                     "planIds", request.getPlanIds(),
-                    "total", totalCalculado
-            ));
+                    "total", totalCalculado));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Error serializando payload", e);
         }
@@ -154,8 +155,7 @@ public class PurchaseService {
                 purchase.getPayload(),
                 purchase.getSnsResult(),
                 purchase.getCreatedAt(),
-                purchase.getUpdatedAt()
-        );
+                purchase.getUpdatedAt());
     }
 
     @Retryable(value = Exception.class, maxAttempts = 3)
@@ -169,8 +169,7 @@ public class PurchaseService {
                         "clienteId", purchase.getClienteId(),
                         "total", purchase.getTotal(),
                         "estado", purchase.getEstado().name(),
-                        "cedula", cedula
-                ))
+                        "cedula", cedula))
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();
@@ -185,8 +184,10 @@ public class PurchaseService {
 
     /**
      * Invoca el SNS de forma REACTIVA con WebFlux (WebClient).
-     * La respuesta se procesa DIRECTAMENTE en la cadena reactiva, sin webhook de vuelta.
-     * publishOn(Schedulers.boundedElastic()) permite ejecutar operaciones bloqueantes (JPA)
+     * La respuesta se procesa DIRECTAMENTE en la cadena reactiva, sin webhook de
+     * vuelta.
+     * publishOn(Schedulers.boundedElastic()) permite ejecutar operaciones
+     * bloqueantes (JPA)
      * sin bloquear el event loop de Netty.
      */
     @CircuitBreaker(name = "purchaseCircuitBreaker", fallbackMethod = "fallbackSnsValidation")
@@ -198,15 +199,16 @@ public class PurchaseService {
                         "compraId", purchase.getId(),
                         "clienteId", purchase.getClienteId(),
                         "total", purchase.getTotal(),
-                        "payload", purchase.getPayload()
-                ))
+                        "payload", purchase.getPayload()))
                 .retrieve()
                 .bodyToMono(Map.class)
                 // Cambiar al scheduler de hilos bloqueantes antes de tocar JPA/IO
                 .publishOn(Schedulers.boundedElastic())
                 .doOnNext(response -> {
-                    log.info("[WebFlux] Respuesta SNS recibida reactivamente para compra {}: {}", purchase.getId(), response);
-                    String resultado = response != null ? (String) response.getOrDefault("resultado", "ERROR") : "ERROR";
+                    log.info("[WebFlux] Respuesta SNS recibida reactivamente para compra {}: {}", purchase.getId(),
+                            response);
+                    String resultado = response != null ? (String) response.getOrDefault("resultado", "ERROR")
+                            : "ERROR";
                     processSnsResult(purchase.getId(), resultado);
                 })
                 .then();
@@ -223,7 +225,8 @@ public class PurchaseService {
     }
 
     /**
-     * Procesa el resultado de la validacion SNS directamente (llamado desde la cadena WebFlux).
+     * Procesa el resultado de la validacion SNS directamente (llamado desde la
+     * cadena WebFlux).
      * Actualiza el estado de la compra, notifica a SaludPay si fue aprobada
      * y envia notificaciones al cliente.
      * Separado de handleWebhookSns para ser invocable tanto por la cadena reactiva
@@ -255,8 +258,8 @@ public class PurchaseService {
     private void invokeSnsValidationAsync(PurchaseEntity purchase) {
         invokeSnsValidation(purchase).subscribe(
                 ignored -> log.info("[WebFlux] SNS reactive chain completada para compra {}", purchase.getId()),
-                throwable -> log.error("[WebFlux] Error en cadena reactiva SNS para compra {}: {}", purchase.getId(), throwable.getMessage())
-        );
+                throwable -> log.error("[WebFlux] Error en cadena reactiva SNS para compra {}: {}", purchase.getId(),
+                        throwable.getMessage()));
     }
 
     public void publishPurchaseCompleted(PurchaseEntity purchase) {
@@ -264,7 +267,7 @@ public class PurchaseService {
         List<String> nombresPlanes = new java.util.ArrayList<>();
         List<String> serviciosMedicos = new java.util.ArrayList<>();
 
-        // Consultar el catálogo para obtener los nombres de planes y servicios médicos
+        // Consultar el catalogo para obtener los nombres de planes y servicios medicos
         for (Long planId : planIds) {
             try {
                 @SuppressWarnings("unchecked")
@@ -282,7 +285,7 @@ public class PurchaseService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("No se pudo consultar el plan {} del catálogo para el evento: {}", planId, e.getMessage());
+                log.warn("No se pudo consultar el plan {} del catalogo para el evento: {}", planId, e.getMessage());
                 nombresPlanes.add("Plan #" + planId);
             }
         }
@@ -295,20 +298,19 @@ public class PurchaseService {
                 serviciosMedicos,
                 purchase.getTotal(),
                 Instant.now(),
-                purchase.getEstado().name()
-        );
+                purchase.getEstado().name());
         log.info("Publicando PurchaseCompletedEvent: compraId={}, planes={}, servicios={}",
                 purchase.getId(), nombresPlanes, serviciosMedicos);
         rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.SHC_ROUTING_KEY, event);
         rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE, RabbitMqConfig.SAM_ROUTING_KEY, event);
     }
 
-
     private List<Long> extractPlanIds(String payload) {
         try {
             Map<?, ?> json = objectMapper.readValue(payload, Map.class);
             Object planIds = json.get("planIds");
-            return objectMapper.convertValue(planIds, objectMapper.getTypeFactory().constructCollectionType(List.class, Long.class));
+            return objectMapper.convertValue(planIds,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Long.class));
         } catch (JsonProcessingException e) {
             log.warn("No se pudieron extraer planIds del payload", e);
             return List.of();

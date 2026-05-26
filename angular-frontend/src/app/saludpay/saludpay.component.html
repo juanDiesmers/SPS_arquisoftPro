@@ -16,6 +16,10 @@
         <input type="password" [(ngModel)]="spPassword" placeholder="Contraseña" class="form-control" />
       </div>
 
+      <div *ngIf="pendingPurchaseIdFromUrl" class="alert alert-info">
+        Has ingresado desde una compra pendiente. Inicia sesión con tu cédula y contraseña para ver todos los pagos pendientes asociados a tu usuario.
+      </div>
+
       <div *ngIf="spError" class="alert alert-error">{{ spError }}</div>
 
       <button (click)="loginSaludPay()" class="btn btn-pay" [disabled]="loginLoading">
@@ -42,7 +46,7 @@
           <span class="pago-amount">${{ pago.total | number }}</span>
           <span class="pago-estado">{{ pago.estado }}</span>
         </div>
-        <button (click)="ejecutarPago(pago.id)" class="btn btn-pay" [disabled]="pagoLoading">
+        <button (click)="ejecutarPago(pago.id, pago.compraId)" class="btn btn-pay" [disabled]="pagoLoading">
           {{ pagoLoading ? 'Procesando...' : 'Pagar Ahora' }}
         </button>
         <div *ngIf="pagoError" class="alert alert-error">{{ pagoError }}</div>

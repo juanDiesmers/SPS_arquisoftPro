@@ -17,7 +17,7 @@ public class SamController {
         this.repository = repository;
     }
 
-    /** Lista todas las agendas médicas */
+    /** Lista todas las agendas medicas */
     @GetMapping("/agendas")
     public ResponseEntity<List<SamRecord>> getAll() {
         return ResponseEntity.ok(repository.findAll());
@@ -29,7 +29,7 @@ public class SamController {
         return ResponseEntity.ok(repository.findByClienteId(clienteId));
     }
 
-    /** Obtiene la agenda de una compra específica */
+    /** Obtiene la agenda de una compra especifica */
     @GetMapping("/agendas/compra/{compraId}")
     public ResponseEntity<List<SamRecord>> getByCompra(@PathVariable Long compraId) {
         return ResponseEntity.ok(repository.findByCompraId(compraId));

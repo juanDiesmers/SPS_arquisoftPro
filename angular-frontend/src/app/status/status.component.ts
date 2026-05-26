@@ -108,7 +108,7 @@ export class StatusComponent implements OnInit {
   }
 
   goToSaludPaySpecific(p: any) {
-    this.router.navigate(['/saludpay'], { queryParams: { id: p.id, total: p.total } });
+    this.router.navigate(['/saludpay']);
   }
 
   checkStatus() {
@@ -122,7 +122,7 @@ export class StatusComponent implements OnInit {
   }
 
   goToSaludPay() {
-    this.router.navigate(['/saludpay'], { queryParams: { id: this.purchase.id, total: this.purchase.total } });
+    this.router.navigate(['/saludpay']);
   }
 
   ngOnDestroy() {

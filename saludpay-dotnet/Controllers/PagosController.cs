@@ -50,7 +50,7 @@ namespace SaludPay.Api.Controllers
         {
             if (string.IsNullOrEmpty(cedula))
             {
-                return BadRequest("La cédula es requerida.");
+                return BadRequest("La cedula es requerida.");
             }
             var payments = await _pagoService.GetPaymentsByCedulaAsync(cedula);
             return Ok(payments);

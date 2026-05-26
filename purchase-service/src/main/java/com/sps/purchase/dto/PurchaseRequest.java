@@ -9,7 +9,7 @@ public class PurchaseRequest {
     @NotNull(message = "clienteId is required")
     private Long clienteId;
 
-    /** Cédula del cliente para identificarlo en SaludPay. */
+    /** Cedula del cliente para identificarlo en SaludPay. */
     private String cedula;
 
     @NotEmpty(message = "planIds is required")

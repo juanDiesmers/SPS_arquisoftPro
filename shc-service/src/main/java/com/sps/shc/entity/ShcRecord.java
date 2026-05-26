@@ -25,7 +25,7 @@ public class ShcRecord {
     @Column(name = "nombres_planes", columnDefinition = "TEXT")
     private String nombresPlanes;
 
-    /** Desglose de servicios médicos incluidos en los planes */
+    /** Desglose de servicios medicos incluidos en los planes */
     @Column(name = "servicios_medicos", columnDefinition = "TEXT")
     private String serviciosMedicos;
 
@@ -42,7 +42,7 @@ public class ShcRecord {
     }
 
     public ShcRecord(Long compraId, Long clienteId, String planIds, String nombresPlanes,
-                     String serviciosMedicos, BigDecimal total, String estado, Instant createdAt) {
+            String serviciosMedicos, BigDecimal total, String estado, Instant createdAt) {
         this.compraId = compraId;
         this.clienteId = clienteId;
         this.planIds = planIds;
@@ -53,21 +53,71 @@ public class ShcRecord {
         this.createdAt = createdAt;
     }
 
-    public Long getId() { return id; }
-    public Long getCompraId() { return compraId; }
-    public void setCompraId(Long compraId) { this.compraId = compraId; }
-    public Long getClienteId() { return clienteId; }
-    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
-    public String getPlanIds() { return planIds; }
-    public void setPlanIds(String planIds) { this.planIds = planIds; }
-    public String getNombresPlanes() { return nombresPlanes; }
-    public void setNombresPlanes(String nombresPlanes) { this.nombresPlanes = nombresPlanes; }
-    public String getServiciosMedicos() { return serviciosMedicos; }
-    public void setServiciosMedicos(String serviciosMedicos) { this.serviciosMedicos = serviciosMedicos; }
-    public BigDecimal getTotal() { return total; }
-    public void setTotal(BigDecimal total) { this.total = total; }
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getCompraId() {
+        return compraId;
+    }
+
+    public void setCompraId(Long compraId) {
+        this.compraId = compraId;
+    }
+
+    public Long getClienteId() {
+        return clienteId;
+    }
+
+    public void setClienteId(Long clienteId) {
+        this.clienteId = clienteId;
+    }
+
+    public String getPlanIds() {
+        return planIds;
+    }
+
+    public void setPlanIds(String planIds) {
+        this.planIds = planIds;
+    }
+
+    public String getNombresPlanes() {
+        return nombresPlanes;
+    }
+
+    public void setNombresPlanes(String nombresPlanes) {
+        this.nombresPlanes = nombresPlanes;
+    }
+
+    public String getServiciosMedicos() {
+        return serviciosMedicos;
+    }
+
+    public void setServiciosMedicos(String serviciosMedicos) {
+        this.serviciosMedicos = serviciosMedicos;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
 }

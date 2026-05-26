@@ -23,6 +23,12 @@ builder.Services.AddHttpClient("purchaseService", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
+builder.Services.AddHttpClient("authService", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AUTH_SERVICE_URL"] ?? "http://auth-service:8081");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
 builder.Services.AddScoped<PagoService>();
 
 var app = builder.Build();

@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS plan_servicios (
 -- Seed initial medical services
 INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (1, 'Consulta General', 50000.00);
 INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (2, 'Examenes de Laboratorio', 30000.00);
-INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (3, 'Hospitalización Basica', 49900.00);
+INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (3, 'Hospitalizacion Basica', 49900.00);
 INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (4, 'Consulta con Especialista', 100000.00);
 INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (5, 'Examenes Avanzados', 80000.00);
 INSERT IGNORE INTO servicios_medicos (id, nombre, precio) VALUES (6, 'Hospitalizacion Especializada', 99900.00);

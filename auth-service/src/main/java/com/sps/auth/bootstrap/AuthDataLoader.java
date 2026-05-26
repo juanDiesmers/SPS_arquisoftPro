@@ -23,6 +23,7 @@ public class AuthDataLoader implements CommandLineRunner {
             admin.setUsername("admin");
             admin.setEmail("admin@example.com");
             admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setCedula("1001");
             userRepository.save(admin);
             System.out.println("Admin user created");
         }

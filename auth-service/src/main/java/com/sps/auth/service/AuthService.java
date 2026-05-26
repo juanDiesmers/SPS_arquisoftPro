@@ -45,6 +45,15 @@ public class AuthService {
         return jwtService.generateToken(user.getUsername());
     }
 
+    public UserEntity validateCedulaAndPassword(String cedula, String rawPassword) {
+        UserEntity user = userRepository.findByCedula(cedula)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con cedula: " + cedula));
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new RuntimeException("Contrasena incorrecta");
+        }
+        return user;
+    }
+
     public boolean validateToken(String token) {
         return jwtService.validateToken(token);
     }

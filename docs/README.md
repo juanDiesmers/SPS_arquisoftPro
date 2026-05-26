@@ -7,10 +7,10 @@ Arquitectura de Microservicios: Java EE (Spring Boot) + .NET
 
 ## Servicios y Puertos
 
-| Servicio               | Tecnología        | Puerto | Red            |
+| Servicio               | Tecnologia        | Puerto | Red            |
 |------------------------|-------------------|--------|----------------|
-| Angular Frontend       | Nginx + Angular   | 4200   | pública        |
-| API Gateway            | Spring Cloud GW   | 8080   | pública        |
+| Angular Frontend       | Nginx + Angular   | 4200   | publica        |
+| API Gateway            | Spring Cloud GW   | 8080   | publica        |
 | Auth Service           | Spring Boot       | 8081   | privada        |
 | Catalog Service        | Spring Boot       | 8082   | privada        |
 | Purchase Service (×2)  | Spring Boot       | 8083   | privada        |
@@ -30,8 +30,8 @@ Arquitectura de Microservicios: Java EE (Spring Boot) + .NET
 - Usuario: `admin` / Contraseña: `admin123`
 
 ### SaludPay (.NET)
-- Cédula: `1001` / Contraseña: `password123`
-- Cédula: `1002` / Contraseña: `password123`
+- Cedula: `1001` / Contraseña: `password123`
+- Cedula: `1002` / Contraseña: `password123`
 
 ---
 
@@ -39,27 +39,27 @@ Arquitectura de Microservicios: Java EE (Spring Boot) + .NET
 
 ```
 1. Cliente hace login → GET /auth/login → JWT Token
-2. Consulta catálogo → GET /catalog/planes → Lista de planes con servicios médicos
+2. Consulta catalogo → GET /catalog/planes → Lista de planes con servicios medicos
 3. Inicia compra → POST /purchase/compras { clienteId, cedula, planIds, total }
-4. [SNS valida asíncronamente] → webhook POST /purchase/compras/webhook-sns
-5. Si APROBADO → Purchase envía pago pendiente a SaludPay
-6. Usuario se autentica en SaludPay (cédula + password) → JWT
+4. [SNS valida asincronamente] → webhook POST /purchase/compras/webhook-sns
+5. Si APROBADO → Purchase envia pago pendiente a SaludPay
+6. Usuario se autentica en SaludPay (cedula + password) → JWT
 7. Consulta pagos → GET /api/pagos/mis-pagos?cedula=1001
 8. Ejecuta pago → POST /api/pagos/{id}/pagar
 9. SaludPay notifica a Purchase → POST /purchase/compras/webhook-pago { compraId, estado }
-10. Purchase publica evento RabbitMQ → SHC y SAM registran historia clínica y agenda
-11. Email de confirmación al cliente (simulado en logs)
+10. Purchase publica evento RabbitMQ → SHC y SAM registran historia clinica y agenda
+11. Email de confirmacion al cliente (simulado en logs)
 ```
 
 ---
 
-## Catálogo de Planes
+## Catalogo de Planes
 
 | Plan          | Servicios Incluidos                                          | Precio      |
 |---------------|--------------------------------------------------------------|-------------|
-| Plan Básico   | Consulta General, Exámenes Lab, Hospitalización Básica       | $129.900    |
-| Plan Avanzado | Consulta Especialista, Exámenes Avanzados, Hosp. Especializada | $279.900  |
-| Plan Familiar | Cobertura Médica Familiar (hasta 4 miembros)                 | $399.900    |
+| Plan Basico   | Consulta General, Examenes Lab, Hospitalizacion Basica       | $129.900    |
+| Plan Avanzado | Consulta Especialista, Examenes Avanzados, Hosp. Especializada | $279.900  |
+| Plan Familiar | Cobertura Medica Familiar (hasta 4 miembros)                 | $399.900    |
 
 ---
 
@@ -117,12 +117,12 @@ docker ps
 
 ---
 
-## Separación de Redes
+## Separacion de Redes
 
 - **sps-public-net**: Frontend Angular + API Gateway
-- **sps-private-net**: Todos los microservicios, DBs y mensajería
+- **sps-private-net**: Todos los microservicios, DBs y mensajeria
 
-El frontend solo puede hablar con el Gateway. Ningún servicio interno es accesible directamente desde el exterior.
+El frontend solo puede hablar con el Gateway. Ningun servicio interno es accesible directamente desde el exterior.
 
 ---
 

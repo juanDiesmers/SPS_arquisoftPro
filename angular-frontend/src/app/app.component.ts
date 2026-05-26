@@ -18,6 +18,8 @@ export class AppComponent {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('cedula');
     this.router.navigate(['/login']);
   }
 }

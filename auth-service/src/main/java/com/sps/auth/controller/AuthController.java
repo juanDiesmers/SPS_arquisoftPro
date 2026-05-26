@@ -44,6 +44,16 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/validate-cedula")
+    public ResponseEntity<?> validateCedula(@Valid @RequestBody ValidateCedulaRequest request) {
+        try {
+            UserEntity user = authService.validateCedulaAndPassword(request.getCedula(), request.getPassword());
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+
     @PostMapping("/validate")
     public ResponseEntity<?> validate(@RequestBody ValidateRequest request) {
         boolean valid = authService.validateToken(request.getToken());

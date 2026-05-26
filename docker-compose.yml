@@ -155,6 +155,8 @@ services:
         condition: service_healthy
       purchase-service:
         condition: service_started
+      auth-service:
+        condition: service_started
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://0.0.0:8086
@@ -162,6 +164,7 @@ services:
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
       SPS_SERVICE_URL: http://purchase-service:8083
+      AUTH_SERVICE_URL: http://auth-service:8081
     ports:
       - "8086:8086"
     networks:

@@ -29,9 +29,7 @@ export class LoginComponent {
         localStorage.setItem('userId', res.id);
         localStorage.setItem('username', res.username);
         // Guardar cedula para usarla en compras y SaludPay
-        if (res.cedula) {
-          localStorage.setItem('cedula', res.cedula);
-        }
+        localStorage.setItem('cedula', res.cedula || '');
         this.loading = false;
         this.router.navigate(['/catalog']);
       },
