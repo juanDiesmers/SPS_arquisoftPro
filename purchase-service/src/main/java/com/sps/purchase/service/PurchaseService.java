@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -204,9 +205,15 @@ public class PurchaseService {
         purchaseRepository.save(purchase);
     }
 
+    /**
+     * Invoca el SNS de forma REACTIVA con WebFlux (WebClient).
+     * La respuesta se procesa DIRECTAMENTE en la cadena reactiva, sin webhook de vuelta.
+     * publishOn(Schedulers.boundedElastic()) permite ejecutar operaciones bloqueantes (JPA)
+     * sin bloquear el event loop de Netty.
+     */
     @CircuitBreaker(name = "purchaseCircuitBreaker", fallbackMethod = "fallbackSnsValidation")
     public Mono<Void> invokeSnsValidation(PurchaseEntity purchase) {
-        log.info("Invocando SNS para compra {}", purchase.getId());
+        log.info("[WebFlux] Enviando solicitud reactiva al SNS para compra {}", purchase.getId());
         return webClient.post()
                 .uri(snsServiceUrl + "/sns/validar")
                 .bodyValue(Map.of(
@@ -217,21 +224,60 @@ public class PurchaseService {
                 ))
                 .retrieve()
                 .bodyToMono(Map.class)
-                .doOnNext(response -> log.info("Respuesta SNS recibida: {}", response))
+                // Cambiar al scheduler de hilos bloqueantes antes de tocar JPA/IO
+                .publishOn(Schedulers.boundedElastic())
+                .doOnNext(response -> {
+                    log.info("[WebFlux] Respuesta SNS recibida reactivamente para compra {}: {}", purchase.getId(), response);
+                    String resultado = response != null ? (String) response.getOrDefault("resultado", "ERROR") : "ERROR";
+                    processSnsResult(purchase.getId(), resultado);
+                })
                 .then();
     }
 
     public Mono<Void> fallbackSnsValidation(Throwable ex, PurchaseEntity purchase) {
-        log.error("SNS no disponible para compra {}: {}", purchase.getId(), ex.getMessage());
-        purchase.setEstado(PurchaseStatus.ERROR_SNS);
-        purchaseRepository.save(purchase);
-        return Mono.empty();
+        log.error("[WebFlux] SNS no disponible para compra {}: {}", purchase.getId(), ex.getMessage());
+        // Ejecutar en scheduler bloqueante para acceso a JPA
+        return Mono.fromRunnable(() -> {
+            PurchaseEntity p = purchaseRepository.findById(purchase.getId()).orElse(purchase);
+            p.setEstado(PurchaseStatus.ERROR_SNS);
+            purchaseRepository.save(p);
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    /**
+     * Procesa el resultado de la validacion SNS directamente (llamado desde la cadena WebFlux).
+     * Actualiza el estado de la compra, notifica a SaludPay si fue aprobada
+     * y envia notificaciones al cliente.
+     * Separado de handleWebhookSns para ser invocable tanto por la cadena reactiva
+     * como por el webhook de compatibilidad.
+     */
+    @Transactional
+    public void processSnsResult(Long compraId, String resultado) {
+        PurchaseEntity purchase = purchaseRepository.findById(compraId)
+                .orElseThrow(() -> new IllegalArgumentException("Compra no encontrada: " + compraId));
+        purchase.setSnsResult(resultado);
+        if ("APROBADO".equalsIgnoreCase(resultado)) {
+            purchase.setEstado(PurchaseStatus.PENDIENTE_PAGO);
+            purchase = purchaseRepository.save(purchase);
+            notifySaludPay(purchase);
+            notificationService.sendPaymentNotification(purchase.getClienteId(), purchase.getId(), purchase.getTotal());
+        } else if ("RECHAZADO".equalsIgnoreCase(resultado)) {
+            purchase.setEstado(PurchaseStatus.RECHAZADO);
+            purchaseRepository.save(purchase);
+        } else if ("ENPROCESO".equalsIgnoreCase(resultado)) {
+            purchase.setEstado(PurchaseStatus.VALIDANDO_SNS);
+            purchaseRepository.save(purchase);
+        } else {
+            purchase.setEstado(PurchaseStatus.ERROR_SNS);
+            purchaseRepository.save(purchase);
+        }
+        log.info("[WebFlux] Estado de compra {} actualizado reactivamente a: {}", compraId, purchase.getEstado());
     }
 
     private void invokeSnsValidationAsync(PurchaseEntity purchase) {
         invokeSnsValidation(purchase).subscribe(
-                ignored -> log.info("SNS validation request sent for purchase {}", purchase.getId()),
-                throwable -> log.error("SNS async error for purchase {}: {}", purchase.getId(), throwable.getMessage())
+                ignored -> log.info("[WebFlux] SNS reactive chain completada para compra {}", purchase.getId()),
+                throwable -> log.error("[WebFlux] Error en cadena reactiva SNS para compra {}: {}", purchase.getId(), throwable.getMessage())
         );
     }
 
