@@ -28,7 +28,7 @@ export class LoginComponent {
         localStorage.setItem('token', res.token);
         localStorage.setItem('userId', res.id);
         localStorage.setItem('username', res.username);
-        // Guardar cédula para usarla en compras y SaludPay
+        // Guardar cedula para usarla en compras y SaludPay
         if (res.cedula) {
           localStorage.setItem('cedula', res.cedula);
         }

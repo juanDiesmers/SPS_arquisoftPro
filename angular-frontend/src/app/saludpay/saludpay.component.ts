@@ -26,7 +26,7 @@ export class SaludpayComponent implements OnInit {
   success: boolean = false;
   pagoError: string = '';
 
-  step: number = 1; // 1=login, 2=pagos, 3=confirmación
+  step: number = 1; // 1=login, 2=pagos, 3=confirmacion
 
   constructor(
     private route: ActivatedRoute,
@@ -39,14 +39,14 @@ export class SaludpayComponent implements OnInit {
       this.compraId = Number(params['id'] || 0);
       this.total    = Number(params['total'] || 0);
     });
-    // Pre-llenar cédula desde localStorage si está disponible
+    // Pre-llenar cedula desde localStorage si esta disponible
     this.cedula = localStorage.getItem('cedula') || '';
   }
 
-  /** Paso 1 — Autenticarse en SaludPay con cédula */
+  /** Paso 1 — Autenticarse en SaludPay con cedula */
   loginSaludPay() {
     if (!this.cedula || !this.spPassword) {
-      this.spError = 'Ingresa tu cédula y contraseña de SaludPay';
+      this.spError = 'Ingresa tu cedula y contraseña de SaludPay';
       return;
     }
     this.loginLoading = true;
@@ -64,12 +64,12 @@ export class SaludpayComponent implements OnInit {
       },
       error: () => {
         this.loginLoading = false;
-        this.spError = 'Cédula o contraseña incorrectos en SaludPay';
+        this.spError = 'Cedula o contraseña incorrectos en SaludPay';
       }
     });
   }
 
-  /** Paso 2 — Cargar pagos pendientes por cédula */
+  /** Paso 2 — Cargar pagos pendientes por cedula */
   cargarPagosPendientes() {
     this.pagosLoading = true;
     const headers = new HttpHeaders({ Authorization: `Bearer ${this.spToken}` });

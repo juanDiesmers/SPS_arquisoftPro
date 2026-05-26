@@ -25,7 +25,7 @@ export class CatalogComponent implements OnInit {
       localStorage.setItem('cart', JSON.stringify(cart));
       alert('Plan agregado al carrito');
     } else {
-      alert('El plan ya está en el carrito');
+      alert('El plan ya esta en el carrito');
     }
   }
 }

@@ -4,11 +4,11 @@
 
     <!-- PASO 1: Login SaludPay -->
     <div *ngIf="step === 1">
-      <h3 class="sp-title">Autenticación SaludPay</h3>
+      <h3 class="sp-title">Autenticacion SaludPay</h3>
       <p class="sp-subtitle">Ingresa tus credenciales de SaludPay para continuar</p>
 
       <div class="form-group">
-        <label>Cédula</label>
+        <label>Cedula</label>
         <input type="text" [(ngModel)]="cedula" placeholder="Ej: 1001" class="form-control" />
       </div>
       <div class="form-group">
@@ -23,7 +23,7 @@
       </button>
 
       <div class="sp-hint">
-        <small>Demo: cédula <strong>1001</strong>, contraseña <strong>password123</strong></small>
+        <small>Demo: cedula <strong>1001</strong>, contraseña <strong>password123</strong></small>
       </div>
     </div>
 
@@ -33,7 +33,7 @@
       <div *ngIf="pagosLoading" class="sp-loading">Cargando pagos...</div>
 
       <div *ngIf="!pagosLoading && pagosPendientes.length === 0" class="sp-empty">
-        No tienes pagos pendientes para la cédula {{ cedula }}
+        No tienes pagos pendientes para la cedula {{ cedula }}
       </div>
 
       <div *ngFor="let pago of pagosPendientes" class="pago-card">
@@ -49,7 +49,7 @@
       </div>
     </div>
 
-    <!-- PASO 3: Confirmación -->
+    <!-- PASO 3: Confirmacion -->
     <div *ngIf="step === 3" class="sp-success">
       <div class="icon">✓</div>
       <h3>¡Pago Exitoso!</h3>

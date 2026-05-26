@@ -22,7 +22,7 @@ export class CheckoutComponent implements OnInit {
 
   confirmPurchase() {
     if (this.cart.length === 0) {
-      this.error = 'El carrito está vacío';
+      this.error = 'El carrito esta vacio';
       return;
     }
 

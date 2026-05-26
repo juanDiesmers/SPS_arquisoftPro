@@ -1,5 +1,5 @@
 <div class="status-container">
-  <!-- 1. DETALLE DE COMPRA ESPECÍFICA -->
+  <!-- 1. DETALLE DE COMPRA ESPECIFICA -->
   <div *ngIf="purchaseId">
     <h2>Estado de la Compra</h2>
     
@@ -16,9 +16,9 @@
         <p *ngIf="purchase.snsResult"><strong>Respuesta SNS:</strong> {{ purchase.snsResult }}</p>
       </div>
 
-      <!-- Servicios médicos incluidos en la compra -->
+      <!-- Servicios medicos incluidos en la compra -->
       <div class="servicios-compra-section" *ngIf="getPlanServices(purchase.payload).length > 0">
-        <h4>🏥 Servicios Médicos Incluidos</h4>
+        <h4>🏥 Servicios Medicos Incluidos</h4>
         <ul class="servicios-compra-list">
           <li *ngFor="let s of getPlanServices(purchase.payload)" class="servicio-compra-item">
             <span class="servicio-icon">🩺</span>
@@ -29,11 +29,11 @@
       </div>
 
       <div *ngIf="purchase.estado === 'VALIDANDO_SNS'" class="alert alert-info">
-        Esperando validación de la Superintendencia Nacional de Salud...
+        Esperando validacion de la Superintendencia Nacional de Salud...
       </div>
 
       <div *ngIf="purchase.estado === 'PENDIENTE_PAGO'" class="alert alert-warning">
-        SNS aprobó la compra. Pendiente de pago en Salud Pay.
+        SNS aprobo la compra. Pendiente de pago en Salud Pay.
         <button (click)="goToSaludPay()" class="btn btn-saludpay">Ir a Salud Pay</button>
       </div>
 
@@ -52,7 +52,7 @@
   <!-- 2. LISTADO DE COMPRAS DEL CLIENTE -->
   <div *ngIf="!purchaseId">
     <h2>Mis Compras</h2>
-    <p class="section-desc">Aquí puedes ver el historial y estado de todos tus planes adquiridos.</p>
+    <p class="section-desc">Aqui puedes ver el historial y estado de todos tus planes adquiridos.</p>
 
     <div *ngIf="loadingPurchases" class="loading-spinner">
       Cargando historial de compras...
@@ -61,8 +61,8 @@
     <div *ngIf="!loadingPurchases && purchases.length === 0" class="empty-purchases">
       <div class="icon">📦</div>
       <h3>No tienes compras registradas</h3>
-      <p>Explora nuestro catálogo para adquirir un plan de salud premium.</p>
-      <a routerLink="/catalog" class="btn btn-primary">Ver Catálogo de Planes</a>
+      <p>Explora nuestro catalogo para adquirir un plan de salud premium.</p>
+      <a routerLink="/catalog" class="btn btn-primary">Ver Catalogo de Planes</a>
     </div>
 
     <div *ngIf="!loadingPurchases && purchases.length > 0" class="purchases-list">
